@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Designing Instagram — A Beginner's Step-by-Step Guide</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #181b24;
+    --panel2: #1f2330;
+    --text: #e8eaf0;
+    --muted: #9aa1b2;
+    --accent: #e1306c;
+    --accent2: #f77737;
+    --blue: #4f8ef7;
+    --green: #3ec97e;
+    --yellow: #f5c451;
+    --border: #2b3040;
+    --code-bg: #12141c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.65;
+  }
+  header {
+    padding: 28px 24px 20px;
+    background: linear-gradient(135deg, #833ab4 0%, #e1306c 50%, #f77737 100%);
+    text-align: center;
+  }
+  header h1 { font-size: 1.7rem; color: #fff; }
+  header p { color: rgba(255,255,255,.9); margin-top: 6px; font-size: .95rem; }
+
+  /* Step nav */
+  nav {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+    padding: 14px 16px; background: var(--panel); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  nav button {
+    background: var(--panel2); color: var(--muted); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: .8rem;
+    transition: all .15s;
+  }
+  nav button:hover { color: var(--text); border-color: var(--accent); }
+  nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  nav button.done { color: var(--green); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 30px 20px 80px; }
+  section.step { display: none; animation: fade .3s ease; }
+  section.step.visible { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: none;} }
+
+  .step-label {
+    display: inline-block; background: var(--accent); color: #fff;
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 14px; margin-bottom: 12px;
+  }
+  h2 { font-size: 1.5rem; margin-bottom: 14px; }
+  h3 { font-size: 1.12rem; margin: 26px 0 10px; color: var(--accent2); }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 7px; }
+  strong { color: #fff; }
+  em { color: var(--yellow); font-style: normal; }
+
+  .story {
+    background: var(--panel); border-left: 4px solid var(--blue);
+    padding: 14px 16px; border-radius: 8px; margin: 16px 0;
+  }
+  .story .tag { font-size: .72rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .07em; }
+  .concept {
+    background: var(--panel); border-left: 4px solid var(--yellow);
+    padding: 14px 16px; border-radius: 8px; margin: 16px 0;
+  }
+  .concept .tag { font-size: .72rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: .07em; }
+  .problem {
+    background: var(--panel); border-left: 4px solid var(--accent);
+    padding: 14px 16px; border-radius: 8px; margin: 16px 0;
+  }
+  .problem .tag { font-size: .72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .07em; }
+  .takeaway {
+    background: linear-gradient(135deg, rgba(62,201,126,.12), rgba(79,142,247,.08));
+    border: 1px solid rgba(62,201,126,.4);
+    padding: 14px 16px; border-radius: 8px; margin: 20px 0;
+  }
+  .takeaway .tag { font-size: .72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .07em; }
+
+  /* Diagrams */
+  .diagram {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px 16px; margin: 18px 0; overflow-x: auto;
+  }
+  .diagram .caption { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 12px; }
+  .row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .node {
+    background: var(--panel2); border: 2px solid var(--blue); border-radius: 8px;
+    padding: 10px 14px; text-align: center; font-size: .82rem; min-width: 100px;
+  }
+  .node small { display: block; color: var(--muted); font-size: .7rem; margin-top: 2px; }
+  .node.user { border-color: var(--accent2); }
+  .node.db { border-color: var(--green); border-radius: 18px 18px 8px 8px; }
+  .node.store { border-color: var(--yellow); }
+  .node.cache { border-color: var(--accent); }
+  .node.dim { opacity: .55; border-style: dashed; }
+  .arrow { color: var(--muted); font-size: 1.2rem; padding: 0 2px; }
+  .arrow.v { transform: rotate(90deg); }
+  .lbl { font-size: .68rem; color: var(--muted); text-align: center; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .87rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  th { background: var(--panel2); color: var(--accent2); }
+  td { background: var(--panel); }
+
+  code {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 6px; font-size: .85em; color: var(--yellow);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px; overflow-x: auto; margin: 14px 0; font-size: .82rem; line-height: 1.5;
+    font-family: "SF Mono", Menlo, Consolas, monospace; color: var(--text);
+  }
+
+  .pager { display: flex; justify-content: space-between; margin-top: 36px; gap: 12px; }
+  .pager button {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+    padding: 12px 22px; border-radius: 8px; cursor: pointer; font-size: .9rem;
+  }
+  .pager button.next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .pager button:hover { filter: brightness(1.15); }
+  .pager button:disabled { opacity: .3; cursor: default; }
+
+  .progress { height: 4px; background: var(--panel2); }
+  .progress .bar { height: 100%; background: linear-gradient(90deg, #833ab4, #e1306c, #f77737); width: 0; transition: width .3s; }
+
+  details { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+  summary { cursor: pointer; color: var(--blue); font-weight: 600; font-size: .9rem; }
+  details[open] summary { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#128247; Designing Instagram</h1>
+  <p>A step-by-step system design walkthrough for beginners — one concept at a time</p>
+</header>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<nav id="nav"></nav>
+
+<main id="main">
+
+<!-- ============ STEP 0 ============ -->
+<section class="step" data-title="Start Here">
+  <span class="step-label">Start Here</span>
+  <h2>What we're building &amp; how this guide works</h2>
+  <p>We'll design a simplified Instagram. Instead of dumping the final architecture on you, we start with the <strong>simplest possible design</strong> — one that a beginner could build in a weekend — and then <strong>break it on purpose</strong>, step by step. Every time it breaks, we add exactly one new concept to fix it. By the end, the "scary" final diagram will feel obvious.</p>
+
+  <h3>Meet our users (we'll follow them the whole way)</h3>
+  <ul>
+    <li><strong>Priya</strong> — a regular user with 300 followers. She posts vacation photos.</li>
+    <li><strong>Rahul</strong> — Priya's friend. He mostly scrolls his feed; he rarely posts.</li>
+    <li><strong>Zayn</strong> — a celebrity with 50 million followers. He posts once a day.</li>
+  </ul>
+
+  <h3>The requirements (what the interviewer gave us)</h3>
+  <table>
+    <tr><th>Functional (what it does)</th><th>Non-functional (how well it does it)</th></tr>
+    <tr><td>Upload, download &amp; view photos</td><td>Highly <em>available</em> — the app should basically never be down</td></tr>
+    <tr><td>Follow other users</td><td>News Feed loads in under <em>200ms</em></td></tr>
+    <tr><td>News Feed of top photos from people you follow</td><td>OK if a new photo shows up a bit late for some users (<em>eventual consistency</em>)</td></tr>
+    <tr><td></td><td>Highly <em>reliable</em> — an uploaded photo must <strong>never</strong> be lost</td></tr>
+  </table>
+
+  <div class="concept">
+    <span class="tag">&#128161; Key insight to state early in the interview</span>
+    <p style="margin-top:6px">Instagram is <strong>read-heavy</strong>. For every photo Priya uploads, thousands of people like Rahul <em>view</em> photos. A common assumption is a <strong>100:1 read-to-write ratio</strong>. This single fact shapes almost every decision we'll make: we optimize for fast <em>reads</em> (viewing feeds) and can tolerate slightly slower <em>writes</em> (uploads).</p>
+  </div>
+
+  <h3>Quick back-of-the-envelope math (interviewers love this)</h3>
+  <p>Assume 500M total users, 1M daily active users uploading 2 photos/day, average photo 200&nbsp;KB:</p>
+  <ul>
+    <li><strong>Uploads:</strong> 2M photos/day ≈ <em>23 photos per second</em></li>
+    <li><strong>New storage:</strong> 2M × 200 KB = <em>400 GB per day</em> ≈ 146 TB per year</li>
+    <li><strong>Feed reads:</strong> with a 100:1 ratio, ~2,300 read requests/sec — and much more at peak</li>
+  </ul>
+  <p>Conclusion: storage grows forever (we need cheap, infinitely-scalable photo storage), and reads dominate (we need caching). Keep these two in your pocket — they justify everything that follows.</p>
+</section>
+
+<!-- ============ STEP 1 ============ -->
+<section class="step" data-title="1. Simplest Design">
+  <span class="step-label">Step 1</span>
+  <h2>The simplest thing that works: one server</h2>
+  <p>Start every design with the naive version. One machine runs our application code <em>and</em> our database.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Client &amp; Server</span>
+    <p style="margin-top:6px">The <strong>client</strong> is the Instagram app on Priya's phone. The <strong>server</strong> is a computer in a data center running our code. They talk over the internet using <strong>APIs</strong> — named requests like <code>uploadPhoto()</code> or <code>getFeed()</code>. Think of an API like a restaurant menu: the client can only order things on the menu, and the kitchen (server) prepares them.</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Priya's phone<small>client (app)</small></div>
+      <div class="col"><span class="arrow">&#10230;</span><span class="lbl">uploadPhoto()</span></div>
+      <div class="node">&#128421; One Server<small>app code + database<br>+ photos on its disk</small></div>
+    </div>
+    <div class="caption">Design v1: everything on a single machine</div>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">Priya taps "Share" on a beach photo. Her app sends the photo bytes to our server. The server saves the photo file to its hard disk and writes a row in its database: <em>"photo #123, owner: Priya, caption: 'Goa!', time: 9:01am"</em>. When Rahul opens his app, it calls <code>getFeed()</code>; the server looks up who Rahul follows, finds Priya's photo, reads it from disk, and sends it back. Done!</p>
+  </div>
+
+  <h3>Why this breaks (and it will)</h3>
+  <div class="problem">
+    <span class="tag">&#9888; Problems</span>
+    <ul style="margin-top:8px">
+      <li><strong>Single point of failure:</strong> if this one server crashes, Instagram is down for everyone. Violates our "highly available" requirement.</li>
+      <li><strong>It can't keep up:</strong> one machine can handle maybe a few thousand users. We have millions.</li>
+      <li><strong>Disk fills up:</strong> 400 GB of new photos per day. A single machine's disk is full within days.</li>
+      <li><strong>Photos can be lost:</strong> if the disk dies, Priya's photos are gone forever. Violates "never lose a photo."</li>
+    </ul>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">The single-server design is our baseline. Each next step fixes exactly one of these problems.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 2 ============ -->
+<section class="step" data-title="2. Separate Photo Storage">
+  <span class="step-label">Step 2</span>
+  <h2>Split photos from data: Object Storage</h2>
+  <p>First fix: photos are <em>huge</em> compared to everything else. A photo is ~200 KB; the text about it ("Priya, 9:01am, caption 'Goa!'") is ~200 <em>bytes</em> — a thousand times smaller. These two kinds of data have totally different needs, so we store them in different places.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Metadata vs. the actual file</span>
+    <p style="margin-top:6px"><strong>Metadata</strong> means "data about data." For a photo, the metadata is: who posted it, when, the caption, and <em>where the actual image file lives</em>. Think of a library: the card catalog (metadata) tells you which shelf a book is on; the shelf (object storage) holds the actual book. You'd never stuff the whole book inside the card catalog.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Object Storage (e.g., Amazon S3)</span>
+    <p style="margin-top:6px">Object storage is a service built for storing files ("objects") — practically unlimited space, very cheap, and it <strong>automatically keeps 3+ copies of every file on different machines</strong>. If one disk dies, your photo survives. This is exactly how we satisfy "a photo must never be lost." You store a file and get back a URL like <code>s3://photos/priya/123.jpg</code>.</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Priya's phone</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128421; App Server<small>our code</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:12px">
+        <div class="node store">&#128452; Object Storage<small>actual photo files<br>(3 copies each!)</small></div>
+        <div class="node db">&#128451; Database<small>metadata: owner, caption,<br>time, photo URL</small></div>
+      </div>
+    </div>
+    <div class="caption">Design v2: files and metadata live in separate, specialized systems</div>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">Priya uploads her beach photo. The server now does two things: (1) pushes the image file into object storage, which replies "saved at <code>photos/priya/123.jpg</code>, copied to 3 machines"; (2) writes one small row into the database: <em>photo #123, owner Priya, caption "Goa!", url photos/priya/123.jpg</em>. When Rahul views it, the server reads the tiny metadata row, and Rahul's phone downloads the image straight from object storage.</p>
+  </div>
+
+  <h3>Why not store images inside the database?</h3>
+  <ul>
+    <li>Databases are optimized for small, structured rows — stuffing 200 KB blobs in makes every operation slow and backups enormous.</li>
+    <li>Object storage is ~10x cheaper per GB and scales to exabytes without us doing anything.</li>
+    <li>Serving a file from object storage doesn't waste our database's precious capacity.</li>
+  </ul>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Separate <strong>big dumb files</strong> (object storage) from <strong>small smart data</strong> (database). Object storage's built-in replication already satisfies our "never lose a photo" requirement. &#10024;</p>
+  </div>
+</section>
+
+<!-- ============ STEP 3 ============ -->
+<section class="step" data-title="3. Load Balancing">
+  <span class="step-label">Step 3</span>
+  <h2>Millions of users: many servers + a Load Balancer</h2>
+  <p>One app server can handle maybe a few thousand simultaneous users. We have millions. And if that single server crashes, everyone is locked out. The fix: run <strong>many identical copies</strong> of our app server.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Horizontal vs. Vertical scaling</span>
+    <p style="margin-top:6px"><strong>Vertical scaling</strong> = buy a bigger machine (more CPU/RAM). Simple, but there's a ceiling — you can't buy an infinitely big computer, and it's still one machine that can crash. <strong>Horizontal scaling</strong> = add more ordinary machines. No ceiling, and losing one machine is no big deal. Big systems almost always scale horizontally.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Load Balancer</span>
+    <p style="margin-top:6px">If we have 20 app servers, which one should Priya's phone talk to? A <strong>load balancer</strong> is a traffic cop that sits in front of them. Every request goes to the load balancer, which forwards it to a healthy, not-too-busy server (e.g., simple <em>round-robin</em>: server 1, 2, 3, 1, 2, 3...). It also runs <strong>health checks</strong> — pinging each server every few seconds — and stops sending traffic to any server that doesn't respond.</p>
+    <p>Restaurant analogy: the load balancer is the host at the door who seats each arriving party at whichever table (server) is free — and stops seating people at a broken table.</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="col" style="gap:10px">
+        <div class="node user">&#128241; Priya</div>
+        <div class="node user">&#128241; Rahul</div>
+        <div class="node user">&#128241; millions more…</div>
+      </div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node" style="border-color:var(--accent2)">&#9878; Load Balancer<small>traffic cop +<br>health checks</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node">&#128421; App Server 1</div>
+        <div class="node">&#128421; App Server 2</div>
+        <div class="node">&#128421; App Server N…</div>
+      </div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:12px">
+        <div class="node store">&#128452; Object Storage</div>
+        <div class="node db">&#128451; Database</div>
+      </div>
+    </div>
+    <div class="caption">Design v3: a fleet of identical app servers behind a load balancer</div>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">It's New Year's Eve and everyone is posting. Requests flood in; the load balancer spreads them across 50 app servers. At 12:03am, server #7 crashes. The load balancer's health check notices within seconds and simply stops routing to it. Rahul, mid-scroll, notices nothing — his next request just lands on server #8. That's <em>high availability</em> in action.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Stateless servers</span>
+    <p style="margin-top:6px">This only works if app servers are <strong>stateless</strong> — they remember nothing between requests (all data lives in the database/object storage). Then any server can handle any user's request, and adding/removing servers is trivial. Like fast-food cashiers: any cashier can take any customer's order because the menu and kitchen are shared.</p>
+  </div>
+
+  <div class="problem">
+    <span class="tag">&#9888; New problem we just created</span>
+    <p style="margin-top:6px">50 app servers can handle the traffic... but they all still talk to <strong>one database</strong>. The database is now the bottleneck and the single point of failure. That's our next two steps.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 4 ============ -->
+<section class="step" data-title="4. Database Design">
+  <span class="step-label">Step 4</span>
+  <h2>What's in the database? Tables &amp; the SQL/NoSQL choice</h2>
+  <p>Before scaling the database, let's define what we actually store. We only need three core "tables" (think: spreadsheets):</p>
+
+  <pre>
+<span style="color:var(--green)">User</span>                <span style="color:var(--green)">Photo</span>                       <span style="color:var(--green)">Follow</span>
+─────────────       ─────────────────────       ─────────────────────
+user_id  (key)      photo_id  (key)             follower_id + followee_id
+name                owner_user_id  ← who posted (Rahul, Priya) means
+email               photo_url  ← object storage "Rahul follows Priya"
+signup_date         caption
+                    created_at  ← for sorting feeds</pre>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">When Rahul taps "Follow" on Priya's profile, we insert one tiny row: <code>(rahul_id, priya_id)</code> into the Follow table. When we later build Rahul's feed, we ask: <em>"give me all followee_ids where follower_id = rahul"</em> → [Priya, Zayn, ...], then <em>"give me recent photos where owner is in that list."</em> That's the entire logical heart of Instagram — two lookups!</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: SQL vs. NoSQL</span>
+    <p style="margin-top:6px"><strong>SQL databases</strong> (MySQL, PostgreSQL) store data in structured tables with strict rules and are great at combining tables ("joins"). <strong>NoSQL databases</strong> (Cassandra, DynamoDB) are more like giant distributed key–value stores: you look things up by key, they scale horizontally very easily, and they're built for high availability — but they're weaker at complex cross-table queries.</p>
+    <p>For us: our data <em>is</em> naturally relational (users, follows, photos), but our queries are simple key lookups, our scale is huge, and our requirements say <em>availability over consistency</em>. Both answers are defensible in an interview. A common, safe answer: <strong>SQL (e.g., MySQL) for user/follow data</strong> (small, relational), and a <strong>NoSQL wide-column store (e.g., Cassandra) for the huge, ever-growing photo metadata</strong>. What matters is that you justify the choice with the requirements.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Index</span>
+    <p style="margin-top:6px">An <strong>index</strong> is like the index at the back of a textbook: instead of scanning every page (row) to find "photos by Priya," the database keeps a sorted lookup structure on <code>owner_user_id</code> and jumps straight there. We'd index <code>Photo.owner_user_id</code>, <code>Photo.created_at</code>, and <code>Follow.follower_id</code> — the columns our feed queries filter on. Indexes make reads fast at the cost of slightly slower writes (the index must be updated too) — a great trade for our read-heavy app.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Three tables — User, Photo, Follow — plus indexes on the columns we search by. The photo file itself is NOT here; only its URL is. Now let's make this database survive failures and scale.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 5 ============ -->
+<section class="step" data-title="5. Scaling the DB">
+  <span class="step-label">Step 5</span>
+  <h2>Scaling the database: Replication &amp; Sharding</h2>
+  <p>Two separate problems, two separate tools. Problem A: the database can die (availability). Problem B: it can't hold all the data or handle all the traffic (scale).</p>
+
+  <h3>Tool A: Replication — copies for safety and read speed</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Primary–Replica replication</span>
+    <p style="margin-top:6px">Keep several copies of the database. All <strong>writes</strong> (new photos, new follows) go to one <strong>primary</strong>; it continuously streams every change to several <strong>replicas</strong> (copies). <strong>Reads</strong> can be served by any replica. Benefits: (1) if the primary dies, a replica is promoted and we keep running — availability &#10003;; (2) since Instagram is 100:1 read-heavy, spreading reads across replicas multiplies our read capacity &#10003;.</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node db">&#128451; Primary<small>all writes go here</small></div>
+      <div class="col"><span class="arrow">&#10230;</span><span class="lbl">copies changes</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node db">&#128451; Replica 1<small>serves reads</small></div>
+        <div class="node db">&#128451; Replica 2<small>serves reads</small></div>
+        <div class="node db">&#128451; Replica 3<small>serves reads</small></div>
+      </div>
+    </div>
+    <div class="caption">Writes → primary. Reads → replicas. If primary dies, a replica takes over.</div>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough — where "eventual consistency" comes from</span>
+    <p style="margin-top:6px">Priya posts her photo at 9:01:00. It's written to the primary and reaches Replica 1 at 9:01:01, Replica 2 at 9:01:02. Rahul refreshes at 9:01:01 and his read happens to hit Replica 2 — he doesn't see the photo yet! He refreshes again at 9:01:05 and there it is. That tiny delay is <strong>eventual consistency</strong>, and our requirements explicitly said this is fine. We chose availability over perfect freshness — this is the classic <em>CAP theorem</em> trade-off (in a distributed system, when failures happen, you must pick availability or strict consistency; we pick availability).</p>
+  </div>
+
+  <h3>Tool B: Sharding — splitting the data itself</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Sharding (partitioning)</span>
+    <p style="margin-top:6px">Replication copies the <em>same</em> data everywhere — it doesn't help when the data is too big for one machine. <strong>Sharding</strong> splits the data into pieces, each on a different machine. Like a library that outgrew one building and split into branches: A–H in building 1, I–P in building 2, Q–Z in building 3. A rule (the <strong>shard key</strong>) tells you which branch holds what.</p>
+    <p>For photo metadata, shard by <code>photo_id</code>: e.g., <code>shard = photo_id % 10</code> spreads photos evenly across 10 database machines. (Sharding by <em>user</em> is tempting but risky: Zayn the celebrity would make one shard extremely "hot" while others idle.)</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node">&#128421; App Server</div>
+      <div class="col"><span class="arrow">&#10230;</span><span class="lbl">photo_id % 10</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node db">Shard 0<small>photos 10, 20, 30…</small></div>
+        <div class="node db">Shard 1<small>photos 11, 21, 31…</small></div>
+        <div class="node db">Shard …9<small>each shard also<br>has replicas!</small></div>
+      </div>
+    </div>
+    <div class="caption">Each shard holds 1/10th of the data — and each shard has its own replicas.</div>
+  </div>
+
+  <details>
+    <summary>Bonus: how do we generate photo IDs if there's no single database?</summary>
+    <p>With many shards, we can't rely on one database's auto-incrementing counter. Common answers: a dedicated <strong>ID-generation service</strong>, or IDs that encode a <strong>timestamp + machine ID + counter</strong> (like Twitter's "Snowflake"). Timestamp-first IDs are handy: sorting by ID = sorting by time, perfect for newest-first feeds.</p>
+  </details>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px"><strong>Replication</strong> = same data, many copies → survives failures, multiplies read capacity. <strong>Sharding</strong> = different data, many machines → unlimited size. Real systems use both together.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 6 ============ -->
+<section class="step" data-title="6. Caching & CDN">
+  <span class="step-label">Step 6</span>
+  <h2>Making reads fast: Cache &amp; CDN</h2>
+  <p>Our 200ms feed budget is tight. A database query might take 10–50ms, and building a feed needs several. Photos coming from far-away storage can take even longer. Two tools fix this — both are forms of the same idea: <em>keep popular stuff close by</em>.</p>
+
+  <h3>Tool A: Cache (for metadata)</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Cache (e.g., Redis / Memcached)</span>
+    <p style="margin-top:6px">A <strong>cache</strong> is a small, blazing-fast storage layer that keeps data in <strong>RAM</strong> (memory) instead of on disk. Reading from RAM takes ~0.1ms vs ~10ms+ for a database query — up to 100x faster. It's your kitchen counter vs. the supermarket: you keep the ingredients you use daily on the counter instead of driving to the store every meal.</p>
+    <p>The standard pattern is <strong>cache-aside</strong>: when the app needs data, it (1) checks the cache — if found, that's a <em>cache hit</em>, done in a millisecond; (2) if not (<em>cache miss</em>), it queries the database, returns the result, <em>and puts a copy in the cache</em> for next time.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: The 80/20 rule &amp; LRU eviction</span>
+    <p style="margin-top:6px">Roughly <strong>20% of content generates 80% of the traffic</strong> (everyone's looking at the same trending posts). So a cache holding just the hot 20% absorbs most reads. The cache is small, so when it fills up we evict the <strong>Least Recently Used</strong> (LRU) items — exactly like clearing the pantry of things you haven't touched in months.</p>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">Zayn posts a photo. The first fan to view it triggers a cache miss → database query (~20ms) → result stored in Redis. The next <em>10 million</em> fans get cache hits at ~0.5ms each. Our database barely notices that 10 million people viewed the post. Without the cache, it would have melted.</p>
+  </div>
+
+  <h3>Tool B: CDN (for the photos themselves)</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: CDN — Content Delivery Network</span>
+    <p style="margin-top:6px">A <strong>CDN</strong> (Cloudflare, CloudFront, Akamai) is a network of thousands of servers spread around the world that cache <em>files</em> — our photos. Speed of light is real: if our object storage is in Virginia and Rahul is in Mumbai, every image fetch crosses the planet (~200ms+ just in travel time — our whole budget!). With a CDN, the first Mumbai viewer pulls the photo from Virginia, and the CDN's <strong>Mumbai edge server keeps a copy</strong>. Every later viewer nearby gets it in ~20ms.</p>
+    <p>Analogy: instead of one warehouse in the US shipping worldwide, you place local convenience stores in every city stocked with the popular items.</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Rahul (Mumbai)</div>
+      <div class="col"><span class="arrow">&#10230;</span><span class="lbl">20ms &#10003;</span></div>
+      <div class="node cache">&#127760; CDN edge, Mumbai<small>cached copy of photo</small></div>
+      <div class="col"><span class="arrow">&#8674;</span><span class="lbl">only on first request</span></div>
+      <div class="node store">&#128452; Object Storage (Virginia)<small>the original</small></div>
+    </div>
+    <div class="caption">Photos are served from a CDN edge near the user, not from the origin.</div>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px"><strong>Cache (Redis)</strong> makes metadata reads ~100x faster; <strong>CDN</strong> makes photo downloads fast worldwide. Together they're how a 100:1 read-heavy system stays under 200ms. One piece left — the trickiest one: actually generating the feed.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 7 ============ -->
+<section class="step" data-title="7. News Feed ★">
+  <span class="step-label">Step 7 — the heart of the problem</span>
+  <h2>Generating the News Feed: Pull vs. Push vs. Hybrid</h2>
+  <p>This is usually the deep-dive of the interview. The question: when Rahul opens the app, how do we assemble "recent top photos from everyone he follows" in under 200ms?</p>
+
+  <h3>Approach 1: Pull ("build it when he asks")</h3>
+  <p>When Rahul opens the app: look up who he follows (say 500 people), query recent photos for each, merge and sort by time, return the top ~50.</p>
+  <div class="problem">
+    <span class="tag">&#9888; Why pull alone is too slow</span>
+    <p style="margin-top:6px">That's querying photos of 500 users across multiple shards, then sorting — potentially hundreds of milliseconds of work <em>while Rahul stares at a spinner</em>. It also repeats this work on every single refresh, mostly recomputing the same answer. Blows the 200ms budget.</p>
+  </div>
+
+  <h3>Approach 2: Push / "fan-out on write" ("build it before he asks")</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Precomputed feeds (fan-out on write)</span>
+    <p style="margin-top:6px">Flip it around: maintain a <strong>ready-made feed list for every user</strong>, stored in the cache/database (just a list of photo IDs, e.g. "Rahul's feed: [photo 981, 977, 970…]"). When Priya posts, a background job finds her 300 followers and <strong>inserts the new photo ID into each of their 300 feed lists</strong>. Now when Rahul opens the app, we just read his precomputed list — one cache read, ~1ms. The 200ms budget is easy.</p>
+    <p>Analogy: pull = going to 500 shops each morning to see what's new. Push = every shop drops a flyer in your mailbox the moment they get new stock; you just open your mailbox.</p>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; The celebrity problem</span>
+    <p style="margin-top:6px">Push works beautifully for Priya (300 followers = 300 quick inserts). But <strong>Zayn has 50 million followers</strong>. One tap on "Share" would trigger 50 million writes! That could take many minutes and hammer our systems — and most of those followers aren't even online.</p>
+  </div>
+
+  <h3>Approach 3: Hybrid (the interview answer)</h3>
+  <ul>
+    <li><strong>Normal users (99.9%):</strong> push. Their posts fan out to followers' precomputed feeds instantly.</li>
+    <li><strong>Celebrities (followers above some threshold, e.g. 100k):</strong> don't fan out. Instead, when Rahul opens his app, we <em>pull</em> just from the handful of celebrities he follows and <strong>merge</strong> their fresh posts with his precomputed feed.</li>
+  </ul>
+  <p>Rahul follows 499 normal users (precomputed &#10003;) and 1 celebrity (one quick extra query &#10003;). Best of both worlds.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Message Queue (async processing)</span>
+    <p style="margin-top:6px">Fan-out shouldn't happen while Priya waits for her upload to finish. Instead the app server drops a small message — "Priya posted photo #123" — onto a <strong>message queue</strong> (Kafka, RabbitMQ, SQS), tells Priya "posted!" immediately, and separate <strong>fan-out worker</strong> machines consume the queue and update follower feeds in the background over the next second or two. A queue is a to-do list between systems: the waiter clips your order to the kitchen rail and moves on; cooks work through the rail at their own pace. This is also why a follower might see the photo a few seconds "late" — and our requirements said that's fine (eventual consistency again).</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Priya posts</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128421; App Server<small>saves photo + metadata,<br>replies "done!" fast</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node" style="border-color:var(--yellow)">&#128203; Message Queue<small>"Priya posted #123"</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#9881; Fan-out Workers<small>insert #123 into her 300<br>followers' feed lists</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node cache">&#9889; Feed Cache<small>Rahul's feed:<br>[#123, #981, #977…]</small></div>
+    </div>
+    <div class="caption">Fan-out on write, done asynchronously via a queue</div>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Pull = compute on read (slow reads, cheap writes). Push = compute on write (instant reads, expensive writes). <strong>Hybrid</strong>: push for normal users, pull for celebrities. Do fan-out asynchronously via a message queue. This is THE key discussion in the interview — know it cold.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 8 ============ -->
+<section class="step" data-title="8. Reliability">
+  <span class="step-label">Step 8</span>
+  <h2>Never lose a photo, never go down</h2>
+  <p>Let's explicitly verify the two strictest requirements.</p>
+
+  <h3>"Any uploaded photo should never be lost" (durability)</h3>
+  <ul>
+    <li><strong>Object storage keeps 3+ copies</strong> of every photo on different machines — often in different buildings (<em>availability zones</em>). One disk, one server, even one building failing loses nothing.</li>
+    <li>The upload API only tells Priya "posted &#10003;" <em>after</em> object storage confirms the file is safely replicated. If anything fails mid-upload, she sees an error and retries — we never silently drop a photo.</li>
+    <li>Metadata is equally protected: every database shard has replicas, plus periodic <strong>backups</strong>.</li>
+  </ul>
+
+  <h3>"Highly available" (the system stays up)</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Redundancy — no single point of failure</span>
+    <p style="margin-top:6px">Walk the diagram and ask of every box: <em>"what if this machine dies right now?"</em> Every answer must be "a copy takes over."</p>
+    <ul style="margin-top:8px">
+      <li><strong>App server dies</strong> → load balancer routes around it (Step 3).</li>
+      <li><strong>Load balancer dies</strong> → yes, even it has a standby twin that takes over its address.</li>
+      <li><strong>Database primary dies</strong> → a replica is promoted to primary (Step 5).</li>
+      <li><strong>Cache dies</strong> → not fatal: requests fall through to the database (slower, but up). Caches are also clustered.</li>
+      <li><strong>Whole data center dies</strong> → big systems run in multiple geographic <em>regions</em>; traffic shifts to another region.</li>
+    </ul>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">At 2am a power failure takes out the building holding our primary metadata database for shard 3. Within seconds: monitoring detects it, replica in another building is promoted to primary, app servers reconnect. Rahul, doom-scrolling at 2am, might see one refresh take an extra second. Priya's photos? All safe — they exist in 3 places. This is what "designing for failure" means: <strong>assume every part WILL fail, and make failure boring.</strong></p>
+  </div>
+
+  <h3>Separating reads from writes (a nice extra point)</h3>
+  <p>Uploads (writes) and feed-viewing (reads) have different shapes — writes are few but heavy (big files), reads are many but light. Many designs use <strong>separate upload servers and read servers</strong> so a burst of uploads never slows down everyone's scrolling. This is the same "specialize each part" instinct as splitting photos from metadata.</p>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Durability = replicate the data (3+ copies, confirm before acknowledging). Availability = replicate the machines (redundancy at every layer). The price is eventual consistency — which our requirements happily accept.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 9 ============ -->
+<section class="step" data-title="9. Full Design">
+  <span class="step-label">Step 9 — putting it all together</span>
+  <h2>The complete architecture</h2>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Clients<small>Priya, Rahul, Zayn</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node" style="border-color:var(--accent2)">&#9878; Load Balancer<small>(with standby)</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node">&#128421; Upload Servers<small>handle writes</small></div>
+        <div class="node">&#128421; Read/Feed Servers<small>handle reads</small></div>
+      </div>
+    </div>
+    <div class="row"><span class="arrow v">&#10230;</span></div>
+    <div class="row">
+      <div class="node" style="border-color:var(--yellow)">&#128203; Message Queue</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#9881; Fan-out Workers</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node cache">&#9889; Feed Cache (Redis)<small>precomputed feed lists</small></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div class="node cache">&#9889; Metadata Cache<small>hot photos, profiles</small></div>
+      <div class="node db">&#128451; Metadata DB<small>sharded + replicated<br>User / Photo / Follow</small></div>
+      <div class="node store">&#128452; Object Storage<small>photos, 3+ copies</small></div>
+      <div class="node cache">&#127760; CDN<small>photos served near users</small></div>
+    </div>
+    <div class="caption">Every box exists for a specific problem we hit in Steps 1–8</div>
+  </div>
+
+  <h3>Flow 1 — Priya uploads a photo (write path)</h3>
+  <ol>
+    <li>Her app → load balancer → an <strong>upload server</strong>.</li>
+    <li>Server stores the image in <strong>object storage</strong> (replicated 3+ times) — gets back a URL.</li>
+    <li>Server writes metadata (owner, caption, URL, time) to the correct <strong>database shard</strong>.</li>
+    <li>Server drops "Priya posted #123" on the <strong>message queue</strong> and immediately tells Priya "&#10003; Posted".</li>
+    <li><strong>Fan-out workers</strong> read the queue, look up Priya's 300 followers, insert #123 into each of their <strong>feed cache</strong> lists. (If Zayn posted, we'd skip this — he's over the celebrity threshold.)</li>
+  </ol>
+
+  <h3>Flow 2 — Rahul opens his feed (read path, &lt;200ms)</h3>
+  <ol>
+    <li>His app → load balancer → a <strong>read server</strong>.</li>
+    <li>Server grabs Rahul's <strong>precomputed feed list</strong> from the feed cache (~1ms): [#123, #981, …].</li>
+    <li>It pulls recent posts from the 1 celebrity Rahul follows (Zayn) and merges them in.</li>
+    <li>It fetches photo metadata for those IDs — mostly from the <strong>metadata cache</strong>, database on misses.</li>
+    <li>Rahul's phone downloads the actual images from the nearest <strong>CDN</strong> edge.</li>
+  </ol>
+
+  <h3>Requirements check &#9989;</h3>
+  <table>
+    <tr><th>Requirement</th><th>How we met it</th></tr>
+    <tr><td>Upload / view photos</td><td>Object storage + CDN + metadata DB</td></tr>
+    <tr><td>Follow users</td><td>Follow table (one row per follow)</td></tr>
+    <tr><td>News Feed</td><td>Hybrid push/pull with precomputed feed cache</td></tr>
+    <tr><td>Highly available</td><td>Redundancy everywhere: LB pairs, server fleets, DB replicas, multi-region</td></tr>
+    <tr><td>&lt;200ms feed</td><td>Precomputed feeds in RAM + metadata cache + CDN</td></tr>
+    <tr><td>Eventual consistency OK</td><td>Replicas + async fan-out may delay a photo a few seconds — allowed</td></tr>
+    <tr><td>Never lose a photo</td><td>3+ replicated copies, acknowledged only after safe write, backups</td></tr>
+  </table>
+
+  <h3>How to narrate this in a 45-minute interview</h3>
+  <ol>
+    <li><strong>(5 min)</strong> Clarify requirements; state read-heavy 100:1; do the storage/QPS math.</li>
+    <li><strong>(5 min)</strong> Draw the simple high-level design (client → LB → app servers → DB + object storage).</li>
+    <li><strong>(10 min)</strong> Data model: three tables, SQL vs NoSQL reasoning, indexes.</li>
+    <li><strong>(15 min)</strong> Deep dives: news feed pull/push/hybrid (the star topic), then sharding, caching, CDN.</li>
+    <li><strong>(5 min)</strong> Reliability: replication, no single point of failure, walk the "what if X dies?" game.</li>
+    <li><strong>(5 min)</strong> Trade-offs &amp; extensions: consistency vs availability choice, celebrity problem, ranking feeds by ML, video support.</li>
+  </ol>
+
+  <details>
+    <summary>Quick glossary — every concept in one line</summary>
+    <ul style="margin-top:8px">
+      <li><strong>Load balancer:</strong> traffic cop distributing requests across identical servers.</li>
+      <li><strong>Horizontal scaling:</strong> add more machines instead of bigger machines.</li>
+      <li><strong>Stateless server:</strong> keeps no memory between requests, so any server can serve anyone.</li>
+      <li><strong>Object storage:</strong> cheap, infinite, auto-replicated file storage (S3).</li>
+      <li><strong>Metadata:</strong> data about data — caption/owner/URL, not the image itself.</li>
+      <li><strong>Replication:</strong> same data copied to several machines (safety + read capacity).</li>
+      <li><strong>Sharding:</strong> data split across machines by a key (size + write capacity).</li>
+      <li><strong>Index:</strong> textbook-index lookup structure making queries fast.</li>
+      <li><strong>Cache:</strong> hot data in RAM; ~100x faster than disk; LRU eviction; 80/20 rule.</li>
+      <li><strong>CDN:</strong> worldwide cache of files, served from near the user.</li>
+      <li><strong>Message queue:</strong> to-do list between systems enabling background (async) work.</li>
+      <li><strong>Fan-out on write:</strong> push new post into every follower's precomputed feed.</li>
+      <li><strong>Eventual consistency:</strong> everyone sees the data eventually, maybe not instantly.</li>
+      <li><strong>CAP theorem:</strong> under failure, pick availability or strict consistency — we chose availability.</li>
+    </ul>
+  </details>
+</section>
+
+</main>
+
+<script>
+  const steps = Array.from(document.querySelectorAll('section.step'));
+  const nav = document.getElementById('nav');
+  const bar = document.getElementById('bar');
+  let current = 0;
+
+  steps.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.textContent = s.dataset.title;
+    b.onclick = () => show(i);
+    nav.appendChild(b);
+
+    const pager = document.createElement('div');
+    pager.className = 'pager';
+    const prev = document.createElement('button');
+    prev.textContent = '← Back';
+    prev.disabled = i === 0;
+    prev.onclick = () => show(i - 1);
+    const next = document.createElement('button');
+    next.className = 'next';
+    next.textContent = i === steps.length - 1 ? 'Start over ↺' : 'Next: ' + steps[Math.min(i + 1, steps.length - 1)].dataset.title + ' →';
+    next.onclick = () => show(i === steps.length - 1 ? 0 : i + 1);
+    pager.append(prev, next);
+    s.appendChild(pager);
+  });
+
+  const buttons = Array.from(nav.children);
+
+  function show(i) {
+    current = i;
+    steps.forEach((s, j) => s.classList.toggle('visible', j === i));
+    buttons.forEach((b, j) => {
+      b.classList.toggle('active', j === i);
+      b.classList.toggle('done', j < i);
+    });
+    bar.style.width = ((i + 1) / steps.length * 100) + '%';
+    window.scrollTo({ top: 0 });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' && current < steps.length - 1) show(current + 1);
+    if (e.key === 'ArrowLeft' && current > 0) show(current - 1);
+  });
+
+  show(0);
+</script>
+</body>
+</html>
