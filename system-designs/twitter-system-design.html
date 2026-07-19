@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Designing Twitter (with Ads) — A Beginner's Step-by-Step Guide</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #181b24;
+    --panel2: #1f2330;
+    --text: #e8eaf0;
+    --muted: #9aa1b2;
+    --accent: #1d9bf0;
+    --accent2: #f5c451;
+    --blue: #4f8ef7;
+    --green: #3ec97e;
+    --yellow: #f5c451;
+    --pink: #e1306c;
+    --border: #2b3040;
+    --code-bg: #12141c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.65;
+  }
+  header {
+    padding: 28px 24px 20px;
+    background: linear-gradient(135deg, #0f4c81 0%, #1d9bf0 60%, #66c5ff 100%);
+    text-align: center;
+  }
+  header h1 { font-size: 1.7rem; color: #fff; }
+  header p { color: rgba(255,255,255,.92); margin-top: 6px; font-size: .95rem; }
+
+  nav {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+    padding: 14px 16px; background: var(--panel); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  nav button {
+    background: var(--panel2); color: var(--muted); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: .8rem;
+    transition: all .15s;
+  }
+  nav button:hover { color: var(--text); border-color: var(--accent); }
+  nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  nav button.done { color: var(--green); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 30px 20px 80px; }
+  section.step { display: none; animation: fade .3s ease; }
+  section.step.visible { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: none;} }
+
+  .step-label {
+    display: inline-block; background: var(--accent); color: #fff;
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 14px; margin-bottom: 12px;
+  }
+  h2 { font-size: 1.5rem; margin-bottom: 14px; }
+  h3 { font-size: 1.12rem; margin: 26px 0 10px; color: var(--accent2); }
+  p { margin-bottom: 12px; }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 7px; }
+  strong { color: #fff; }
+  em { color: var(--yellow); font-style: normal; }
+
+  .story { background: var(--panel); border-left: 4px solid var(--blue); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .story .tag { font-size: .72rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .07em; }
+  .concept { background: var(--panel); border-left: 4px solid var(--yellow); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .concept .tag { font-size: .72rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: .07em; }
+  .problem { background: var(--panel); border-left: 4px solid var(--pink); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .problem .tag { font-size: .72rem; font-weight: 700; color: var(--pink); text-transform: uppercase; letter-spacing: .07em; }
+  .recap { background: var(--panel); border-left: 4px solid var(--green); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .recap .tag { font-size: .72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .07em; }
+  .takeaway {
+    background: linear-gradient(135deg, rgba(62,201,126,.12), rgba(79,142,247,.08));
+    border: 1px solid rgba(62,201,126,.4); padding: 14px 16px; border-radius: 8px; margin: 20px 0;
+  }
+  .takeaway .tag { font-size: .72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .07em; }
+
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 22px 16px; margin: 18px 0; overflow-x: auto; }
+  .diagram .caption { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 12px; }
+  .row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .node { background: var(--panel2); border: 2px solid var(--blue); border-radius: 8px; padding: 10px 14px; text-align: center; font-size: .82rem; min-width: 100px; }
+  .node small { display: block; color: var(--muted); font-size: .7rem; margin-top: 2px; }
+  .node.user { border-color: #f77737; }
+  .node.db { border-color: var(--green); border-radius: 18px 18px 8px 8px; }
+  .node.store { border-color: var(--yellow); }
+  .node.cache { border-color: var(--pink); }
+  .node.ad { border-color: #a970ff; }
+  .arrow { color: var(--muted); font-size: 1.2rem; padding: 0 2px; }
+  .arrow.v { transform: rotate(90deg); }
+  .lbl { font-size: .68rem; color: var(--muted); text-align: center; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .87rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  th { background: var(--panel2); color: var(--accent2); }
+  td { background: var(--panel); }
+
+  code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: .85em; color: var(--yellow); font-family: "SF Mono", Menlo, Consolas, monospace; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; margin: 14px 0; font-size: .82rem; line-height: 1.5; font-family: "SF Mono", Menlo, Consolas, monospace; color: var(--text); }
+
+  .pager { display: flex; justify-content: space-between; margin-top: 36px; gap: 12px; }
+  .pager button { background: var(--panel2); color: var(--text); border: 1px solid var(--border); padding: 12px 22px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+  .pager button.next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .pager button:hover { filter: brightness(1.15); }
+  .pager button:disabled { opacity: .3; cursor: default; }
+
+  .progress { height: 4px; background: var(--panel2); }
+  .progress .bar { height: 100%; background: linear-gradient(90deg, #0f4c81, #1d9bf0, #66c5ff); width: 0; transition: width .3s; }
+
+  details { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+  summary { cursor: pointer; color: var(--blue); font-weight: 600; font-size: .9rem; }
+  details[open] summary { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#128038; Designing Twitter — with Ads</h1>
+  <p>A step-by-step system design walkthrough — builds on the Instagram guide, with a deep dive on the ads system</p>
+</header>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<nav id="nav"></nav>
+
+<main id="main">
+
+<!-- ============ STEP 0 ============ -->
+<section class="step" data-title="Start Here">
+  <span class="step-label">Start Here</span>
+  <h2>What we're building &amp; what's different from Instagram</h2>
+  <p>We'll design a simplified Twitter. If you've been through the Instagram guide, great — the skeleton (load balancers, sharded databases, caches, hybrid feeds) carries over, and we'll <em>recap</em> it quickly rather than re-derive it. The genuinely new material here is: tweets are tiny text (changes the storage math), the celebrity problem is far worse, and — our special focus — <strong>a full advertising system</strong>: how promoted tweets get targeted, auctioned, injected into your timeline, and billed.</p>
+
+  <h3>Meet our cast</h3>
+  <ul>
+    <li><strong>Maya</strong> — regular user, 400 followers, tweets hot takes about cricket.</li>
+    <li><strong>Rohan</strong> — mostly scrolls his timeline; rarely tweets.</li>
+    <li><strong>Zayn</strong> — celebrity, 60 million followers.</li>
+    <li><strong>Stride Shoes</strong> — a sneaker brand that wants to advertise to sports fans like Maya and Rohan. <em>(New character type: the advertiser!)</em></li>
+  </ul>
+
+  <h3>Requirements</h3>
+  <table>
+    <tr><th>Functional</th><th>Non-functional</th></tr>
+    <tr><td>Post tweets (280 chars, optional image/video)</td><td>Highly available</td></tr>
+    <tr><td>Follow other users</td><td>Timeline loads in &lt;200ms</td></tr>
+    <tr><td>Home timeline of tweets from people you follow</td><td>Eventual consistency is acceptable</td></tr>
+    <tr><td><strong>Ads: advertisers run targeted promoted tweets; we show them in timelines and bill for clicks</strong></td><td>Never lose a tweet; <strong>never over- or under-charge an advertiser (money = strict!)</strong></td></tr>
+  </table>
+
+  <div class="concept">
+    <span class="tag">&#128161; Key insights to state early</span>
+    <ul style="margin-top:8px">
+      <li><strong>Even more read-heavy than Instagram.</strong> Twitter's famous stat: ~1000x more timeline <em>reads</em> than tweet <em>writes</em>. Optimize reads at all costs.</li>
+      <li><strong>Tweets are tiny.</strong> ~300 bytes of text vs. Instagram's 200 KB photos. Text storage is almost free — which means we can afford to copy tweets around aggressively (this unlocks the timeline design).</li>
+      <li><strong>Ads have different consistency needs.</strong> A late tweet is fine; charging Stride Shoes for clicks that didn't happen is not. One system, two consistency standards — a great interview talking point.</li>
+    </ul>
+  </div>
+
+  <h3>Back-of-the-envelope math</h3>
+  <p>Assume 200M daily active users, 400M tweets/day:</p>
+  <ul>
+    <li><strong>Tweet writes:</strong> 400M/day ≈ <em>4,600 tweets/sec</em> (peaks 3–4x higher)</li>
+    <li><strong>Text storage:</strong> 400M × 300 bytes ≈ <em>120 GB/day</em> — trivially small! (Media is separate, in object storage.)</li>
+    <li><strong>Timeline reads:</strong> ~1000:1 ratio → millions of reads/sec at peak → caching is not optional, it IS the design.</li>
+  </ul>
+</section>
+
+<!-- ============ STEP 1 ============ -->
+<section class="step" data-title="1. Core Skeleton">
+  <span class="step-label">Step 1 — recap, fast</span>
+  <h2>The core skeleton (you've seen this before)</h2>
+  <p>Same evolution as Instagram, compressed. If any box below feels unfamiliar, revisit the Instagram guide — each concept has a full section there.</p>
+
+  <div class="recap">
+    <span class="tag">&#9194; Recap from the Instagram guide</span>
+    <ul style="margin-top:8px">
+      <li><strong>Clients</strong> (phones) call <strong>APIs</strong> like <code>postTweet()</code> / <code>getTimeline()</code> on our servers.</li>
+      <li>A <strong>load balancer</strong> spreads traffic across a fleet of identical <strong>stateless app servers</strong>; health checks route around dead ones → availability.</li>
+      <li><strong>Object storage</strong> (S3) holds images/videos attached to tweets, auto-replicated 3+ times → media never lost. A <strong>CDN</strong> serves that media from near the user.</li>
+      <li>The <strong>database</strong> holds small structured data, is <strong>replicated</strong> (copies for failover + read capacity) and <strong>sharded</strong> (split across machines by a key) to scale.</li>
+      <li>A <strong>cache</strong> (Redis) keeps hot data in RAM, ~100x faster than the database.</li>
+    </ul>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Clients</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node" style="border-color:#f77737">&#9878; Load Balancer</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128421; App Servers<small>stateless fleet</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node cache">&#9889; Cache (Redis)</div>
+        <div class="node db">&#128451; DB<small>sharded + replicated</small></div>
+        <div class="node store">&#128452; Object Storage + CDN<small>tweet media</small></div>
+      </div>
+    </div>
+    <div class="caption">Our starting point — the skeleton every large web service shares</div>
+  </div>
+
+  <h3>Data model — three familiar tables plus a twist</h3>
+  <pre>
+<span style="color:var(--green)">User</span>              <span style="color:var(--green)">Tweet</span>                        <span style="color:var(--green)">Follow</span>
+────────────      ─────────────────────        ─────────────────────
+user_id (key)     tweet_id (key)               follower_id + followee_id
+name, handle      author_id                    ("Rohan follows Maya")
+bio, joined       text (280 chars)
+                  media_url (nullable)
+                  created_at</pre>
+  <ul>
+    <li><strong>Shard tweets by <code>tweet_id</code></strong>, and generate IDs with a <strong>Snowflake-style scheme</strong> (timestamp + machine + counter). Fun fact for the interview: Snowflake IDs were literally invented at Twitter for this exact problem. Timestamp-first IDs mean <em>sorting by ID = sorting by time</em> — perfect for timelines.</li>
+    <li>SQL (MySQL) is fine for users/follows; the giant ever-growing tweet store fits a NoSQL wide-column DB (Cassandra) well. Justify with requirements, either is defensible.</li>
+  </ul>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Skeleton done in one step because you've earned it. Now the two Twitter-specific deep dives: the timeline (Step 2) and ads (Steps 3–4).</p>
+  </div>
+</section>
+
+<!-- ============ STEP 2 ============ -->
+<section class="step" data-title="2. Home Timeline">
+  <span class="step-label">Step 2</span>
+  <h2>The home timeline — Twitter's signature problem</h2>
+  <p>Historical note worth dropping in your interview: the pull/push/hybrid timeline pattern <em>is</em> Twitter's contribution to system design folklore. In its early "fail whale" years, Twitter computed timelines on-the-fly (pull) and kept falling over. The fix — precomputed timelines — is now the textbook answer.</p>
+
+  <div class="recap">
+    <span class="tag">&#9194; Recap: the three approaches</span>
+    <ul style="margin-top:8px">
+      <li><strong>Pull (fan-out on read):</strong> when Rohan opens the app, query recent tweets from all 500 people he follows, merge, sort. Slow — blows the 200ms budget, repeats work every refresh.</li>
+      <li><strong>Push (fan-out on write):</strong> keep a precomputed timeline list per user in a RAM cache. When Maya tweets, workers insert her tweet ID into all 400 followers' lists (via a <strong>message queue</strong>, asynchronously). Reads become one ~1ms cache lookup.</li>
+      <li><strong>Celebrity problem:</strong> Zayn tweets → 60 <em>million</em> list inserts. Too much. So: <strong>hybrid</strong> — push for normal users, pull-and-merge at read time for the few celebrities you follow.</li>
+    </ul>
+  </div>
+
+  <p>Why Twitter can be even more aggressive with push than Instagram: a timeline entry is just a <strong>tiny tweet ID (8 bytes)</strong>, and tweets themselves are ~300 bytes. Copying a tweet reference into 400 followers' lists costs almost nothing. Cheap data → copy freely → instant reads. (With 200 KB photos you'd only copy IDs too — but Twitter can even cache the full tweet text in RAM for the hottest tweets.)</p>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Maya tweets</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128421; App Server<small>store tweet, ack fast</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node" style="border-color:var(--yellow)">&#128203; Queue</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#9881; Fan-out Workers</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node cache">&#9889; Timeline Cache<small>Rohan: [t812, t807…]<small></small></small></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="node user">&#128241; Rohan opens app</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128421; Timeline Service<small>read Rohan's list (~1ms)<br>+ pull Zayn's fresh tweets<br>+ merge by time</small></div>
+    </div>
+    <div class="caption">Write path (top) and read path (bottom) of the hybrid timeline</div>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">Maya tweets "What a catch!!" during a cricket final. Within ~2 seconds, fan-out workers have slipped tweet <code>t812</code> into 400 followers' cached timelines. Rohan refreshes: his precomputed list comes back in 1ms, the service pulls Zayn's latest tweet (celebrity → not fanned out), merges by timestamp, fetches tweet text (mostly cache hits), and responds — 40ms total. Meanwhile a user whose timeline cache node just failed gets rebuilt from the database — a rare slow request, not an outage.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Hybrid fan-out + timelines living in RAM. But notice: everything so far shows tweets from people you <em>chose</em> to follow. Ads break that assumption — someone <em>pays</em> to enter your timeline. That needs entirely new machinery.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 3 ============ -->
+<section class="step" data-title="3. Ads: Campaigns ★">
+  <span class="step-label">Step 3 — new territory</span>
+  <h2>The Ads system, part 1: advertisers, targeting &amp; the auction</h2>
+  <p>Twitter is free for Maya and Rohan because Stride Shoes pays. Let's build the advertiser side first: how an ad campaign is created and how we decide <em>which</em> ad wins a slot in Rohan's timeline.</p>
+
+  <h3>What an advertiser creates: a campaign</h3>
+  <pre>
+<span style="color:var(--green)">Campaign</span>                          <span style="color:var(--green)">Ad (promoted tweet)</span>
+──────────────────────            ─────────────────────
+campaign_id (key)                 ad_id (key)
+advertiser_id (Stride Shoes)      campaign_id
+total_budget   ($10,000)          creative = an ordinary tweet!
+bid            ($0.50 per click)  ("Meet the new Stride Air &#128095;")
+targeting      (interests=sports,
+                location=India,
+                age=18-35)
+start/end dates</pre>
+  <p>Note the elegant trick: a promoted tweet is just a <em>normal tweet</em> with a campaign attached. It reuses our whole tweet infrastructure — storage, media, rendering. New tables, not a new universe.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Targeting &amp; user profiles</span>
+    <p style="margin-top:6px">Advertisers don't pick users; they pick <strong>audiences</strong> ("sports fans in India, 18–35"). So we maintain a <strong>user-profile store</strong>: for each user, a set of features — location, age band, inferred interests. Where do interests come from? Behavior: Rohan follows 40 cricket accounts and clicks cricket tweets, so a background job tags him <code>interests: [cricket, sneakers]</code>. This store is fed by the same event stream we'll build in Step 4, and it's read at ad-serving time to match users to campaigns.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: The ad auction</span>
+    <p style="margin-top:6px">Usually <em>many</em> campaigns target Rohan at once. Who gets the slot? An <strong>auction</strong>, run in milliseconds at request time:</p>
+    <ol style="margin-top:8px">
+      <li><strong>Candidate selection:</strong> find all active campaigns whose targeting matches Rohan's profile and that still have budget left (say, 200 candidates).</li>
+      <li><strong>Scoring:</strong> for each, compute <code>expected value = bid × pCTR</code>, where <strong>pCTR</strong> ("predicted click-through rate") is a machine-learning model's guess at how likely <em>Rohan specifically</em> is to click <em>this specific ad</em>. Why multiply? We're paid per click — an ad with a $2 bid nobody clicks earns less than a $0.50 bid everyone clicks. Auctioning on bid × pCTR maximizes revenue AND relevance at once.</li>
+      <li><strong>Winner &amp; price:</strong> highest score wins. Commonly a <strong>second-price auction</strong>: the winner pays just enough to beat #2, not their full bid — which encourages honest bidding (you can bid your true value without fear of overpaying).</li>
+    </ol>
+    <p>Analogy: a billboard beside the highway, re-auctioned <em>for every single passing car</em>, to the advertiser whose message that particular driver is most likely to act on. That's the absurd, wonderful scale of online ads.</p>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">Stride Shoes sets up: $10,000 budget, $0.50/click, targeting <em>India · 18–35 · interests: sports</em>. That night, Rohan (tagged <code>cricket, sneakers</code>) opens his timeline. The auction considers 200 matching campaigns. Stride bids $0.50 with pCTR 8% → score 0.04. A cola brand bids $2.00 but its pCTR for Rohan is only 1% → score 0.02. <strong>Stride wins</strong> despite the 4x smaller bid — because Rohan actually cares about sneakers. He's charged-for only if he clicks.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Ads side adds: campaign/ad tables, a user-profile store for targeting, and a real-time auction ranking by <code>bid × pCTR</code>. Next: wiring this into the timeline within our 200ms budget, and the money pipeline.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 4 ============ -->
+<section class="step" data-title="4. Ads: Serving & Billing ★">
+  <span class="step-label">Step 4 — new territory</span>
+  <h2>The Ads system, part 2: serving, tracking &amp; billing</h2>
+
+  <h3>Injecting ads into the timeline</h3>
+  <p>We keep the ad machinery in its own <strong>Ad Server</strong> (a separate service — so an ads bug can never take down timelines, and the teams can deploy independently). The timeline flow becomes:</p>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Rohan opens app</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128421; Timeline Service<small>gets organic tweets<br>(Step 2 hybrid)</small></div>
+      <div class="col"><span class="arrow">&#8644;</span><span class="lbl">asks in parallel<br>~50ms budget</span></div>
+      <div class="node ad">&#127919; Ad Server<small>1. candidates (targeting match)<br>2. score bid × pCTR<br>3. auction → winners</small></div>
+    </div>
+    <div class="row">
+      <div class="col"><span class="arrow v">&#10230;</span></div>
+    </div>
+    <div class="row">
+      <div class="node">&#128203; Merged timeline<small>tweet · tweet · tweet · <span style="color:#a970ff">AD</span> · tweet · tweet · tweet · <span style="color:#a970ff">AD</span> …</small></div>
+    </div>
+    <div class="caption">Ads are fetched in parallel with organic tweets, then interleaved (~1 ad per 6–8 tweets)</div>
+  </div>
+
+  <ul>
+    <li>The timeline service calls the ad server <strong>in parallel</strong> with assembling organic tweets, giving it a strict ~50ms slice of our 200ms budget.</li>
+    <li><strong>Graceful degradation:</strong> if the ad server is slow or down, the timeline ships <em>without ads</em>. We lose a few cents of revenue; Rohan never sees an error. (Interviewers love this point: decide per-component what failure should look like.)</li>
+    <li>Winning ads are interleaved at fixed gaps — enough to earn revenue, not so many that users quit.</li>
+  </ul>
+
+  <h3>Tracking: impressions &amp; clicks</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Event pipeline (stream processing)</span>
+    <p style="margin-top:6px">Every time an ad is <em>shown</em>, the app fires an <strong>impression event</strong>; every tap fires a <strong>click event</strong>. At millions/sec, you never write these straight to a database. Instead they flow into a <strong>message queue built for firehoses (Kafka)</strong>, and <strong>stream processors</strong> (Flink/Spark) consume them to continuously update: per-campaign spend, impression/click counts, and the training data for the pCTR model. It's the same "queue + workers" pattern from fan-out, scaled up to be the backbone of all analytics.</p>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough — following one click's money</span>
+    <p style="margin-top:6px">Rohan taps the Stride ad. His app fires <code>click(ad_id, user, time)</code> → Kafka. Within seconds a stream processor: (1) runs <strong>fraud checks</strong> — is this a bot? the same user clicking 50 times? (discarded if so); (2) adds $0.43 (the second-price amount) to Stride's spend counter; (3) updates the campaign dashboard Stride's marketing team is watching. When spend hits $10,000, the campaign is flagged exhausted and drops out of future auctions within seconds.</p>
+  </div>
+
+  <div class="problem">
+    <span class="tag">&#9888; Two ads-specific hard problems (great interview material)</span>
+    <ul style="margin-top:8px">
+      <li><strong>Budget overspend:</strong> thousands of ad servers auction simultaneously; if each checks a stale budget, Stride could be charged $10,300 on a $10,000 budget. Fix: near-real-time spend counters + campaigns are throttled as they approach their cap; small overshoots are typically not billed (eaten by the platform).</li>
+      <li><strong>Two consistency standards in one system:</strong> timelines are eventually consistent (a late tweet is fine), but <strong>billing must be exact</strong> — every click counted once, exactly once, auditable. So billing events land in durable storage with idempotency keys (a retry of the same click event doesn't double-charge) and are reconciled by batch jobs. Same architecture, stricter guarantees where money flows.</li>
+    </ul>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Serving: separate ad server, parallel call, strict time budget, degrade to ad-free rather than fail. Money: click → Kafka → fraud filter → spend counter → exact, idempotent billing. Eventual consistency for content, strict consistency for money.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 5 ============ -->
+<section class="step" data-title="5. Search & Trends">
+  <span class="step-label">Step 5 — quick bonus</span>
+  <h2>Search &amp; Trending (brief, but interviewers often probe here)</h2>
+
+  <h3>Search: the inverted index</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Inverted index</span>
+    <p style="margin-top:6px">To answer "show me tweets containing <em>cricket</em>," scanning 400M tweets/day is hopeless. An <strong>inverted index</strong> flips the data: instead of tweet → words, store <strong>word → list of tweet IDs</strong> (<code>"cricket" → [t812, t790, …]</code>). Exactly like the index at the back of a textbook. When Maya tweets, a worker (fed by the same message queue as fan-out) tokenizes her tweet and appends its ID to each word's list. Search = look up the word, fetch the tweets. Elasticsearch/Lucene is the standard tool.</p>
+  </div>
+
+  <h3>Trending topics: counting in windows</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Sliding-window counting</span>
+    <p style="margin-top:6px">"Trending" = hashtags with a sudden spike <em>recently</em>. The tweet event stream (Kafka again!) feeds a stream processor that counts hashtag mentions in, say, 5-minute windows, and compares against each tag's normal baseline. <code>#CricketFinal</code> jumping from 100 to 90,000 mentions/window → trending. Notice the pattern: <strong>one event stream, many consumers</strong> — fan-out workers, the search indexer, trend counters, ad-spend counters, and the pCTR trainer all drink from the same firehose. That's why the queue is the true center of the architecture.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Search = inverted index, updated asynchronously. Trending = stream-processed sliding-window counts. Both are just more consumers of the tweet event stream.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 6 ============ -->
+<section class="step" data-title="6. Full Design">
+  <span class="step-label">Step 6 — putting it all together</span>
+  <h2>The complete architecture</h2>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Users<small>Maya, Rohan, Zayn</small></div>
+      <div class="node user">&#128188; Advertisers<small>Stride Shoes</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node" style="border-color:#f77737">&#9878; Load Balancer</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node">&#128421; Tweet Service<small>writes</small></div>
+        <div class="node">&#128421; Timeline Service<small>reads</small></div>
+        <div class="node ad">&#127919; Ad Server<small>targeting + auction</small></div>
+        <div class="node ad">&#128202; Campaign Service<small>advertiser dashboard</small></div>
+      </div>
+    </div>
+    <div class="row"><span class="arrow v">&#10230;</span></div>
+    <div class="row">
+      <div class="node" style="border-color:var(--yellow)">&#128203; Kafka event stream<small>tweets · impressions · clicks</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node">&#9881; Fan-out workers → Timeline Cache</div>
+        <div class="node">&#128269; Search indexer → Inverted Index</div>
+        <div class="node">&#128200; Trend counter · pCTR trainer</div>
+        <div class="node ad">&#128176; Spend/billing pipeline (exact!)</div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div class="node cache">&#9889; Timeline + Tweet Cache</div>
+      <div class="node db">&#128451; Tweet DB<small>sharded + replicated</small></div>
+      <div class="node db">&#128451; User/Follow/Campaign DB</div>
+      <div class="node store">&#128452; Object Storage + CDN<small>media</small></div>
+    </div>
+    <div class="caption">One event stream feeds every background system — the signature of modern architectures</div>
+  </div>
+
+  <h3>Flow 1 — Maya tweets (write path)</h3>
+  <ol>
+    <li>App → LB → Tweet Service: store text in Tweet DB shard (Snowflake ID), media to object storage, publish "Maya tweeted t812" to Kafka. Ack Maya immediately.</li>
+    <li>Consumers do the rest async: fan-out to 400 timelines, index words for search, bump hashtag counters.</li>
+  </ol>
+
+  <h3>Flow 2 — Rohan opens his timeline (read path, &lt;200ms, with ads)</h3>
+  <ol>
+    <li>Timeline Service reads Rohan's precomputed list from cache (~1ms), pulls + merges celebrity tweets (Zayn).</li>
+    <li><em>In parallel</em>, Ad Server matches Rohan's profile → auction → returns 2 winning promoted tweets (≤50ms, or timeline ships ad-free).</li>
+    <li>Ads interleaved every ~7 posts; tweet texts fetched (mostly cache hits); media loads via CDN.</li>
+    <li>The app fires impression events for the ads shown → Kafka → spend/pCTR pipelines.</li>
+  </ol>
+
+  <h3>Requirements check &#9989;</h3>
+  <table>
+    <tr><th>Requirement</th><th>How we met it</th></tr>
+    <tr><td>Post tweets / follow</td><td>Tweet + Follow tables, sharded DB, object storage for media</td></tr>
+    <tr><td>Home timeline &lt;200ms</td><td>Hybrid fan-out, timelines precomputed in RAM</td></tr>
+    <tr><td><strong>Ads</strong></td><td>Campaign store + profile-based targeting + bid×pCTR auction + parallel ad server + interleaving</td></tr>
+    <tr><td><strong>Accurate billing</strong></td><td>Click events → Kafka → fraud filter → idempotent, exactly-once billing + reconciliation</td></tr>
+    <tr><td>Highly available</td><td>Redundancy at every layer; ads degrade gracefully to ad-free timelines</td></tr>
+    <tr><td>Eventual consistency OK</td><td>Async fan-out/replication may delay a tweet seconds — allowed (but NOT for money)</td></tr>
+    <tr><td>Never lose a tweet</td><td>Replicated DB writes acknowledged before ack-ing user; media 3+ copies</td></tr>
+  </table>
+
+  <h3>Narrating this in a 45-minute interview</h3>
+  <ol>
+    <li><strong>(5 min)</strong> Requirements + math; call out 1000:1 reads and "ads need strict billing consistency."</li>
+    <li><strong>(5 min)</strong> Skeleton: LB → stateless services → sharded/replicated DB, cache, object storage + CDN.</li>
+    <li><strong>(10 min)</strong> Timeline deep dive: pull vs push vs hybrid, celebrity problem, Kafka fan-out.</li>
+    <li><strong>(15 min)</strong> Ads deep dive: campaigns → targeting profiles → bid×pCTR auction → parallel serving with degradation → click pipeline → budget/billing exactness.</li>
+    <li><strong>(5 min)</strong> Search + trending as extra Kafka consumers.</li>
+    <li><strong>(5 min)</strong> Reliability walk ("what if X dies?") + trade-offs (consistency split, ad load vs. user experience).</li>
+  </ol>
+
+  <details>
+    <summary>New glossary entries (beyond the Instagram guide)</summary>
+    <ul style="margin-top:8px">
+      <li><strong>Impression / click:</strong> an ad being shown / being tapped — the two billable-ish events.</li>
+      <li><strong>CTR / pCTR:</strong> click-through rate; the ML-predicted probability a given user clicks a given ad.</li>
+      <li><strong>Ad auction:</strong> per-request contest ranked by bid × pCTR; second-price = winner pays just enough to beat #2.</li>
+      <li><strong>Budget pacing:</strong> throttling a campaign so it spends evenly and never blows past its cap.</li>
+      <li><strong>Idempotency:</strong> processing the same event twice has no extra effect — the key to never double-charging.</li>
+      <li><strong>Graceful degradation:</strong> when a subsystem fails, ship a reduced experience (ad-free timeline) instead of an error.</li>
+      <li><strong>Inverted index:</strong> word → list of documents; how search avoids scanning everything.</li>
+      <li><strong>Stream processing:</strong> continuously computing over an event firehose (Kafka + Flink) — powers fan-out, trends, spend, ML training.</li>
+      <li><strong>Snowflake ID:</strong> timestamp+machine+counter ID scheme (born at Twitter); sortable by time, no central counter.</li>
+    </ul>
+  </details>
+</section>
+
+</main>
+
+<script>
+  const steps = Array.from(document.querySelectorAll('section.step'));
+  const nav = document.getElementById('nav');
+  const bar = document.getElementById('bar');
+  let current = 0;
+
+  steps.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.textContent = s.dataset.title;
+    b.onclick = () => show(i);
+    nav.appendChild(b);
+
+    const pager = document.createElement('div');
+    pager.className = 'pager';
+    const prev = document.createElement('button');
+    prev.textContent = '← Back';
+    prev.disabled = i === 0;
+    prev.onclick = () => show(i - 1);
+    const next = document.createElement('button');
+    next.className = 'next';
+    next.textContent = i === steps.length - 1 ? 'Start over ↺' : 'Next: ' + steps[Math.min(i + 1, steps.length - 1)].dataset.title + ' →';
+    next.onclick = () => show(i === steps.length - 1 ? 0 : i + 1);
+    pager.append(prev, next);
+    s.appendChild(pager);
+  });
+
+  const buttons = Array.from(nav.children);
+
+  function show(i) {
+    current = i;
+    steps.forEach((s, j) => s.classList.toggle('visible', j === i));
+    buttons.forEach((b, j) => {
+      b.classList.toggle('active', j === i);
+      b.classList.toggle('done', j < i);
+    });
+    bar.style.width = ((i + 1) / steps.length * 100) + '%';
+    window.scrollTo({ top: 0 });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' && current < steps.length - 1) show(current + 1);
+    if (e.key === 'ArrowLeft' && current > 0) show(current - 1);
+  });
+
+  show(0);
+</script>
+</body>
+</html>
