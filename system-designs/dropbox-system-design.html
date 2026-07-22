@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Designing Dropbox — A Beginner's Step-by-Step Guide</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #181b24;
+    --panel2: #1f2330;
+    --text: #e8eaf0;
+    --muted: #9aa1b2;
+    --accent: #0061ff;
+    --blue: #4f8ef7;
+    --green: #2eb67d;
+    --yellow: #ecb22e;
+    --pink: #e01e5a;
+    --cyan: #36c5f0;
+    --purple: #a970ff;
+    --border: #2b3040;
+    --code-bg: #12141c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+  header { padding: 28px 24px 20px; background: linear-gradient(135deg, #0037a8 0%, #0061ff 55%, #36c5f0 100%); text-align: center; }
+  header h1 { font-size: 1.7rem; color: #fff; }
+  header p { color: rgba(255,255,255,.92); margin-top: 6px; font-size: .95rem; }
+
+  nav { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 14px 16px; background: var(--panel); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+  nav button { background: var(--panel2); color: var(--muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: .8rem; transition: all .15s; }
+  nav button:hover { color: var(--text); border-color: var(--accent); }
+  nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  nav button.done { color: var(--green); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 30px 20px 80px; }
+  section.step { display: none; animation: fade .3s ease; }
+  section.step.visible { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: none;} }
+
+  .step-label { display: inline-block; background: var(--accent); color: #fff; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 12px; border-radius: 14px; margin-bottom: 12px; }
+  h2 { font-size: 1.5rem; margin-bottom: 14px; }
+  h3 { font-size: 1.12rem; margin: 26px 0 10px; color: var(--yellow); }
+  p { margin-bottom: 12px; }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 7px; }
+  strong { color: #fff; }
+  em { color: var(--yellow); font-style: normal; }
+
+  .story { background: var(--panel); border-left: 4px solid var(--blue); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .story .tag { font-size: .72rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .07em; }
+  .concept { background: var(--panel); border-left: 4px solid var(--yellow); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .concept .tag { font-size: .72rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: .07em; }
+  .problem { background: var(--panel); border-left: 4px solid var(--pink); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .problem .tag { font-size: .72rem; font-weight: 700; color: var(--pink); text-transform: uppercase; letter-spacing: .07em; }
+  .recap { background: var(--panel); border-left: 4px solid var(--green); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .recap .tag { font-size: .72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .07em; }
+  .takeaway { background: linear-gradient(135deg, rgba(46,182,125,.12), rgba(0,97,255,.08)); border: 1px solid rgba(46,182,125,.4); padding: 14px 16px; border-radius: 8px; margin: 20px 0; }
+  .takeaway .tag { font-size: .72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .07em; }
+
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 22px 16px; margin: 18px 0; overflow-x: auto; }
+  .diagram .caption { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 12px; }
+  .row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .node { background: var(--panel2); border: 2px solid var(--blue); border-radius: 8px; padding: 10px 14px; text-align: center; font-size: .82rem; min-width: 100px; }
+  .node small { display: block; color: var(--muted); font-size: .7rem; margin-top: 2px; }
+  .node.user { border-color: #f77737; }
+  .node.db { border-color: var(--green); border-radius: 18px 18px 8px 8px; }
+  .node.store { border-color: var(--yellow); }
+  .node.cache { border-color: var(--pink); }
+  .node.sync { border-color: var(--cyan); }
+  .node.meta { border-color: var(--purple); }
+  .arrow { color: var(--muted); font-size: 1.2rem; padding: 0 2px; }
+  .arrow.v { transform: rotate(90deg); }
+  .lbl { font-size: .68rem; color: var(--muted); text-align: center; }
+  .chunk { display: inline-block; background: var(--panel2); border: 2px solid var(--cyan); border-radius: 6px; padding: 6px 9px; margin: 3px; font-size: .74rem; font-family: monospace; }
+  .chunk.changed { border-color: var(--pink); color: var(--pink); }
+  .chunk.dim { opacity: .45; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .87rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  th { background: var(--panel2); color: var(--yellow); }
+  td { background: var(--panel); }
+
+  code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: .85em; color: var(--yellow); font-family: "SF Mono", Menlo, Consolas, monospace; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; margin: 14px 0; font-size: .82rem; line-height: 1.5; font-family: "SF Mono", Menlo, Consolas, monospace; color: var(--text); }
+
+  .pager { display: flex; justify-content: space-between; margin-top: 36px; gap: 12px; }
+  .pager button { background: var(--panel2); color: var(--text); border: 1px solid var(--border); padding: 12px 22px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+  .pager button.next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .pager button:hover { filter: brightness(1.15); }
+  .pager button:disabled { opacity: .3; cursor: default; }
+
+  .progress { height: 4px; background: var(--panel2); }
+  .progress .bar { height: 100%; background: linear-gradient(90deg, #0037a8, #0061ff, #36c5f0); width: 0; transition: width .3s; }
+
+  details { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+  summary { cursor: pointer; color: var(--blue); font-weight: 600; font-size: .9rem; }
+  details[open] summary { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#128193; Designing Dropbox</h1>
+  <p>A step-by-step system design walkthrough — focus on file sync: chunking, dedup, delta sync &amp; conflict resolution</p>
+</header>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<nav id="nav"></nav>
+
+<main id="main">
+
+<!-- ============ STEP 0 ============ -->
+<section class="step" data-title="Start Here">
+  <span class="step-label">Start Here</span>
+  <h2>What's fundamentally different about Dropbox</h2>
+  <p>The earlier apps served content to phones. Dropbox's job is stranger: <strong>keep a folder identical across many of your devices and collaborators, automatically.</strong> You edit a file on your laptop; seconds later it's updated on your phone, your desktop, and your teammate's machine. The magic word is <strong>sync</strong>, and getting it right — fast, cheap on bandwidth, and never corrupting or losing a file — is the whole game. That's this guide's deep dive.</p>
+
+  <h3>Meet our cast</h3>
+  <ul>
+    <li><strong>Maya</strong> — works on <code>report.pptx</code> from her laptop <em>and</em> her home desktop.</li>
+    <li><strong>Rohan</strong> — a collaborator who shares Maya's <code>/TeamProject</code> folder.</li>
+    <li><strong>report.pptx</strong> — a 50 MB presentation Maya keeps tweaking (great for showing off <em>delta sync</em>).</li>
+  </ul>
+
+  <h3>Requirements</h3>
+  <table>
+    <tr><th>Functional</th><th>Non-functional</th></tr>
+    <tr><td>Upload/download files; store them in the cloud</td><td>Highly available</td></tr>
+    <tr><td>Automatically <strong>sync</strong> files across a user's devices</td><td><strong>Never lose or corrupt a file</strong> (durability is sacred)</td></tr>
+    <tr><td>Share folders; collaborators see each other's changes</td><td>Sync should feel fast &amp; use minimal bandwidth</td></tr>
+    <tr><td>Offline edits that reconcile when back online</td><td>Handle huge files (GBs) and flaky/interrupted networks</td></tr>
+    <tr><td>File history / restore previous versions</td><td>Eventual consistency OK (a change may take seconds to appear elsewhere)</td></tr>
+  </table>
+
+  <div class="concept">
+    <span class="tag">&#128161; Key insights to state early</span>
+    <ul style="margin-top:8px">
+      <li><strong>Split the problem in two:</strong> file <em>contents</em> (big, dumb bytes) and file <em>metadata</em> (small facts: name, folder, version, which chunks). These want totally different systems — the same "big files vs. small smart data" split from the Instagram guide, taken further.</li>
+      <li><strong>Never re-upload a whole file for a tiny edit.</strong> Change one slide in a 50 MB deck and we should transfer only the changed part. This is <em>delta sync</em>, and it's the signature Dropbox trick.</li>
+      <li><strong>Durability beats everything.</strong> Users trust Dropbox with their only copy of important files. Losing or corrupting data is the one unforgivable failure.</li>
+    </ul>
+  </div>
+
+  <h3>Back-of-the-envelope</h3>
+  <ul>
+    <li>Say 500M users, average 50 GB stored each → hundreds of petabytes. Storage is the dominant cost → dedup &amp; cheap object storage matter enormously.</li>
+    <li>Most "syncs" are small edits, not new files → optimizing the <em>edit</em> path (delta sync) saves the most bandwidth.</li>
+    <li>Read/write ratio is more balanced than social apps, but heavily favors <em>"nothing changed"</em> — clients mostly ask "any updates?" and hear "no."</li>
+  </ul>
+</section>
+
+<!-- ============ STEP 1 ============ -->
+<section class="step" data-title="1. Naive Version">
+  <span class="step-label">Step 1</span>
+  <h2>The naive version: whole-file upload &amp; download</h2>
+  <p>Simplest thing that works: the client watches your folder; when a file changes, it uploads the <em>entire</em> file to the server, which stores it. Other devices poll "is there a newer version?" and download the whole thing.</p>
+
+  <div class="recap">
+    <span class="tag">&#9194; Recap: the skeleton (from earlier guides)</span>
+    <p style="margin-top:6px">Clients &#8594; <strong>load balancer</strong> &#8594; stateless <strong>app servers</strong> &#8594; a <strong>database</strong> (replicated + sharded) for metadata and <strong>object storage</strong> (S3, 3+ replicated copies) for the file bytes. We already know object storage gives us cheap, effectively-infinite, durable file storage — that's the backbone of "never lose a file."</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128187; Maya's laptop<small>watches folder</small></div>
+      <div class="col"><span class="arrow">&#10230;</span><span class="lbl">upload whole<br>50 MB file</span></div>
+      <div class="node">&#128421; App Server</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node store">&#128452; Object Storage</div>
+    </div>
+    <div class="caption">Design v1: upload the entire file on every change</div>
+  </div>
+
+  <div class="problem">
+    <span class="tag">&#9888; Why whole-file sync is painful</span>
+    <ul style="margin-top:8px">
+      <li><strong>Wasteful:</strong> Maya fixes one typo in her 50 MB deck → we re-upload all 50 MB. Multiply across millions of tiny edits = staggering wasted bandwidth and money.</li>
+      <li><strong>Fragile on big files:</strong> uploading a 2 GB file over hotel wifi that drops at 90% means starting over from zero.</li>
+      <li><strong>Slow to sync:</strong> her desktop must download the whole 50 MB to get that one-character fix.</li>
+      <li><strong>Duplicate storage:</strong> if 10,000 employees have the same 20 MB company handbook, we store it 10,000 times.</li>
+    </ul>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Whole-file sync works but bleeds bandwidth and storage. The fix to nearly all of these problems is one idea: stop treating a file as one blob. Break it into <strong>chunks</strong>.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 2 ============ -->
+<section class="step" data-title="2. Chunking ★">
+  <span class="step-label">Step 2 — the core idea</span>
+  <h2>Break files into chunks</h2>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Chunking</span>
+    <p style="margin-top:6px">Instead of storing a file as one big blob, the client slices it into fixed-size pieces — <strong>chunks</strong> (Dropbox uses ~4 MB). A 50 MB file becomes ~13 chunks. Each chunk is stored separately in object storage, and the file's metadata records the <em>ordered list of chunks</em> that reassemble it. Think of a book split into chapters: to fix a typo in chapter 7, you reprint only chapter 7, not the whole book.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Content hashing (the chunk's fingerprint)</span>
+    <p style="margin-top:6px">Each chunk gets a <strong>hash</strong> — a short fingerprint computed from its bytes (e.g. SHA-256). Identical bytes always produce the same fingerprint; change one byte and the fingerprint changes completely. We name and look up chunks <em>by their hash</em>. This fingerprint is the key that unlocks both delta sync and dedup (next steps).</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128196; report.pptx<small>50 MB</small></div>
+      <div class="col"><span class="arrow">&#10230;</span><span class="lbl">split into 4 MB chunks</span></div>
+      <div class="col">
+        <div><span class="chunk">c1: a3f9…</span><span class="chunk">c2: 7b2e…</span><span class="chunk">c3: 1c8d…</span></div>
+        <div><span class="chunk">c4: 9f04…</span><span class="chunk">…</span><span class="chunk">c13: e57a…</span></div>
+      </div>
+    </div>
+    <div class="caption">A file = an ordered list of hashed chunks. Metadata stores the list; object storage stores the chunks.</div>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Metadata vs. block storage (the two-database split)</span>
+    <p style="margin-top:6px">This makes the split from the Instagram guide crisp. We keep <strong>two</strong> systems:</p>
+    <ul style="margin-top:8px">
+      <li><strong>Metadata Service + DB</strong> — small, structured facts: files, folders, versions, and each file's ordered chunk-hash list, permissions, sharing. This is the "brain."</li>
+      <li><strong>Block Storage</strong> — the actual chunk bytes, keyed by hash, sitting in object storage (3+ copies). This is the "warehouse."</li>
+    </ul>
+    <p>The metadata is tiny but queried constantly; the blocks are huge but simple. Specializing each is why the system scales.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Chunk the file, fingerprint each chunk by content hash, store chunks in block storage and the chunk-list in a metadata DB. Everything good below flows from this one decision.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 3 ============ -->
+<section class="step" data-title="3. Delta Sync & Dedup ★">
+  <span class="step-label">Step 3 — the payoff</span>
+  <h2>Delta sync &amp; deduplication</h2>
+
+  <h3>Delta sync — only move what changed</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Delta sync</span>
+    <p style="margin-top:6px">When Maya edits her deck, the client re-chunks the file and compares the new chunk fingerprints against the old ones. Almost all chunks are <em>identical</em> (same hash) — only the chunk(s) she touched have new hashes. The client uploads <strong>only the changed chunks</strong> and tells the metadata service "the new version of report.pptx is: [same, same, <em>NEW</em>, same, …]". One edited slide → one 4 MB chunk uploaded instead of 50 MB. <strong>~92% bandwidth saved.</strong></p>
+  </div>
+
+  <div class="diagram">
+    <div class="row"><span class="lbl">before edit</span></div>
+    <div class="row">
+      <span class="chunk dim">c1</span><span class="chunk dim">c2</span><span class="chunk dim">c3</span><span class="chunk dim">c4</span><span class="chunk dim">c5</span><span class="chunk dim">…</span>
+    </div>
+    <div class="row"><span class="lbl">Maya edits slide 3 &#8594; re-chunk &#8594; compare fingerprints</span></div>
+    <div class="row">
+      <span class="chunk dim">c1</span><span class="chunk dim">c2</span><span class="chunk changed">c3&#8242; NEW</span><span class="chunk dim">c4</span><span class="chunk dim">c5</span><span class="chunk dim">…</span>
+    </div>
+    <div class="caption">Only <span style="color:var(--pink)">c3&#8242;</span> is uploaded; every other chunk already exists in block storage</div>
+  </div>
+
+  <h3>Deduplication — never store the same bytes twice</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Deduplication</span>
+    <p style="margin-top:6px">Because chunks are addressed by content hash, two identical chunks have the <em>same</em> name — so they're automatically the same object in block storage. Before uploading a chunk, the client asks the metadata service "do you already have hash <code>a3f9…</code>?" If yes, it skips the upload entirely and just references it. Consequences:</p>
+    <ul style="margin-top:8px">
+      <li>The 20 MB company handbook shared by 10,000 employees is stored <strong>once</strong>, referenced 10,000 times.</li>
+      <li>Re-uploading a file you already have transfers <em>nothing</em> — this is why dragging a big file that's already in Dropbox finishes instantly.</li>
+    </ul>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">Maya tweaks one chart in <code>report.pptx</code> and saves. Her client: (1) re-chunks — 13 chunks, 12 fingerprints unchanged, 1 new; (2) asks the metadata service which of the 13 hashes it already has → "I have 12, send me the 13th"; (3) uploads that one 4 MB chunk to block storage; (4) commits a new version pointing at the new chunk list. Total moved: 4 MB, not 50 MB. Her desktop, when it syncs, downloads only that same 4 MB chunk and reassembles the file locally. Fast for her, cheap for us.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Content-hashed chunks give us <strong>delta sync</strong> (upload only changed chunks) and <strong>dedup</strong> (store identical chunks once) for free. Massive savings in bandwidth and storage — the two things Dropbox spends the most on. Bonus: chunking also makes <strong>resumable uploads</strong> trivial (a dropped connection only re-sends the unfinished chunk).</p>
+  </div>
+</section>
+
+<!-- ============ STEP 4 ============ -->
+<section class="step" data-title="4. Sync & Notifications">
+  <span class="step-label">Step 4</span>
+  <h2>How devices find out something changed</h2>
+  <p>Delta sync explains <em>how</em> to move changes efficiently. But how does Maya's desktop learn there's a change to fetch in the first place? Two paths, and Dropbox famously uses both.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Long-polling notification vs. metadata polling</span>
+    <p style="margin-top:6px">Every online client keeps a lightweight connection to a <strong>Notification Service</strong> (long-polling or a WebSocket, like Slack's gateways). This channel carries no file data — just a tiny nudge: "something in your account changed, go check." On that nudge, the client calls the <strong>Metadata Service</strong> to ask "what's new since version 41?" and gets back the list of changed files/chunks to download. Splitting the cheap "wake up!" signal from the heavier "here's what changed" query keeps the always-on connections extremely light.</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128187; Maya's laptop<small>saves change</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node sync">&#128472; Sync / Metadata Service<small>records new version</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128276; Notification Service<small>nudges other devices</small></div>
+    </div>
+    <div class="row"><span class="arrow v">&#10230;</span><span class="lbl">"you have updates"</span></div>
+    <div class="row">
+      <div class="node user">&#128421; Maya's desktop<small>&#8594; asks metadata "what changed?"<br>&#8594; downloads only new chunks</small></div>
+      <div class="node user">&#128241; Rohan's laptop<small>shared folder &#8594; same flow</small></div>
+    </div>
+    <div class="caption">Light "wake up" signal (notification) + heavy "what changed" query (metadata) + chunk download (block storage)</div>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Client-side watcher &amp; local index</span>
+    <p style="margin-top:6px">On each device the Dropbox client watches your folder for changes and keeps a <strong>local index</strong> (a little database of "which file is at which version, made of which chunk hashes"). When a file changes locally, the watcher notices, re-chunks, and pushes deltas up. When a remote change arrives, it downloads deltas and updates local files. The local index is what lets the client compute deltas and detect conflicts without re-reading everything.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">A light notification channel says "wake up," the metadata service says "here's exactly what changed," and only changed chunks travel. Clients keep a local index to drive it all. But what happens when two people change the same file at once? That's the last hard problem.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 5 ============ -->
+<section class="step" data-title="5. Conflicts & Durability">
+  <span class="step-label">Step 5</span>
+  <h2>Conflicts, versioning &amp; never losing data</h2>
+
+  <h3>The conflict problem</h3>
+  <div class="story">
+    <span class="tag">&#127916; Two edits collide</span>
+    <p style="margin-top:6px">Maya edits <code>report.pptx</code> on her laptop <em>offline</em> on a flight. Meanwhile Rohan edits the same file and syncs it to the cloud. Maya lands, reconnects — now there are two different "next versions" of the same file, both based on version 41. Who wins? If we blindly overwrite, someone's work is destroyed — a cardinal sin for a product people trust with their files.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Versioning &amp; conflict resolution</span>
+    <p style="margin-top:6px">The metadata service treats file history as a chain of versions. Each update says "I'm basing this on version 41." The <strong>first</strong> update to arrive becomes version 42. When the second update arrives <em>also</em> claiming to build on 41, the service detects the clash. Rather than silently pick a winner and lose data, Dropbox's pragmatic rule: <strong>keep both.</strong> It creates a <em>conflicted copy</em> — e.g. <code>report (Maya's conflicted copy).pptx</code> — so no edit is ever lost, and a human decides how to merge. Simple, safe, and honest about the fact that two people genuinely diverged.</p>
+    <p style="margin-top:8px">Why not auto-merge like Google Docs? Because arbitrary binary files (a .pptx, a .zip) can't be merged line-by-line the way text can. "Keep both, let a human reconcile" is the correct, durable default for a general file store.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: File history &amp; version restore</span>
+    <p style="margin-top:6px">Because every version is just a different <em>chunk list</em> and old chunks are still in block storage (thanks to dedup, they're cheap to keep), we get <strong>version history and "restore previous version" almost for free</strong> — just point the file back at an earlier chunk list. This also protects against accidental deletes and ransomware: the old bytes are still there.</p>
+  </div>
+
+  <h3>Durability — the sacred requirement</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Durability by replication + verification</span>
+    <ul style="margin-top:8px">
+      <li>Every chunk is stored with <strong>3+ replicas</strong> across machines/buildings in object storage. A disk, server, or datacenter failure loses nothing.</li>
+      <li>The client only reports "synced &#10003;" <em>after</em> the metadata commit succeeds, so an interrupted upload never leaves a file half-recorded.</li>
+      <li>The content hash doubles as an <strong>integrity check</strong>: on download, the client re-hashes each chunk and confirms it matches — catching any silent corruption in transit or storage.</li>
+      <li>The metadata DB is itself replicated and backed up — losing the "brain" that maps files to chunks would be as bad as losing the chunks.</li>
+    </ul>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Conflicts &#8594; keep both (conflicted copy), never overwrite. Versions &#8594; free from chunk lists + retained chunks. Durability &#8594; replicate chunks and metadata, ack only after commit, verify with hashes. Losing data is the one thing this system refuses to do.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 6 ============ -->
+<section class="step" data-title="6. Full Design">
+  <span class="step-label">Step 6 — putting it all together</span>
+  <h2>The complete architecture</h2>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128187; Clients<small>watcher + local index,<br>chunk &amp; hash locally</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node" style="border-color:#f77737">&#9878; Load Balancer</div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node sync">&#128472; Metadata / Sync Service<small>versions, chunk lists,<br>dedup checks, conflicts</small></div>
+        <div class="node">&#128228; Block Service<small>up/download chunks</small></div>
+        <div class="node">&#128276; Notification Service<small>"you have updates"</small></div>
+      </div>
+    </div>
+    <div class="row"><span class="arrow v">&#10230;</span></div>
+    <div class="row">
+      <div class="node meta db">&#128451; Metadata DB<small>files, folders, versions,<br>chunk lists, sharing<br>(sharded + replicated)</small></div>
+      <div class="node cache">&#9889; Cache<small>hot metadata,<br>"has chunk?" lookups</small></div>
+      <div class="node store">&#128452; Block Storage<small>chunks by hash,<br>3+ copies, dedup</small></div>
+      <div class="node store">&#127760; CDN<small>fast chunk downloads</small></div>
+    </div>
+    <div class="caption">Two worlds: the metadata "brain" (small, smart) and block storage "warehouse" (huge, simple)</div>
+  </div>
+
+  <h3>Flow 1 — Maya edits report.pptx (upload path)</h3>
+  <ol>
+    <li>Client watcher detects the save, re-chunks the file, hashes each chunk, compares against its local index → 1 new chunk.</li>
+    <li>Client asks Metadata Service which hashes are new (dedup check) → uploads just that chunk via the <strong>Block Service</strong> to block storage (3+ copies).</li>
+    <li>Client commits a new file version (new chunk list) to the Metadata Service; only now does it show "synced &#10003;".</li>
+    <li>Metadata Service tells the <strong>Notification Service</strong>, which nudges Maya's other devices and Rohan (shared folder).</li>
+  </ol>
+
+  <h3>Flow 2 — Rohan's device receives the change (download path)</h3>
+  <ol>
+    <li>Notification Service nudges Rohan's client: "updates available."</li>
+    <li>Client asks Metadata Service "what changed since my version?" → gets the new chunk list.</li>
+    <li>Client downloads only the chunks it doesn't already have (via CDN/block storage), verifies each by re-hashing, and reassembles the file locally.</li>
+    <li>If Rohan had also edited it → conflict detected → a <em>conflicted copy</em> is created so no edit is lost.</li>
+  </ol>
+
+  <h3>Requirements check &#9989;</h3>
+  <table>
+    <tr><th>Requirement</th><th>How we met it</th></tr>
+    <tr><td>Upload/download &amp; store files</td><td>Chunks in block storage; chunk lists in metadata DB</td></tr>
+    <tr><td>Sync across devices</td><td>Notification nudge + metadata "what changed" + chunk download</td></tr>
+    <tr><td>Efficient / low-bandwidth sync</td><td>Delta sync (changed chunks only) + dedup + resumable uploads</td></tr>
+    <tr><td>Shared folders</td><td>Membership in metadata; collaborators notified on change</td></tr>
+    <tr><td>Offline edits reconcile</td><td>Local index + version chain + conflicted-copy resolution</td></tr>
+    <tr><td>Version history / restore</td><td>Versions = chunk lists; retained chunks make old versions cheap</td></tr>
+    <tr><td>Never lose/corrupt a file</td><td>3+ replicas, ack-after-commit, hash integrity checks, replicated metadata</td></tr>
+    <tr><td>Huge files &amp; flaky networks</td><td>Chunking makes uploads resumable chunk-by-chunk</td></tr>
+    <tr><td>Highly available</td><td>Redundant services, sharded/replicated DB, replicated storage</td></tr>
+  </table>
+
+  <h3>Narrating this in a 45-minute interview</h3>
+  <ol>
+    <li><strong>(5 min)</strong> Requirements + math; state "split contents from metadata" and "durability is sacred."</li>
+    <li><strong>(4 min)</strong> Naive whole-file sync; expose its bandwidth/storage waste.</li>
+    <li><strong>(10 min)</strong> Chunking + content hashing; the metadata-vs-block-storage split.</li>
+    <li><strong>(10 min)</strong> Delta sync + dedup (the star): upload only changed chunks, store identical chunks once, resumable uploads.</li>
+    <li><strong>(6 min)</strong> Sync mechanism: notification channel + metadata query + local index.</li>
+    <li><strong>(7 min)</strong> Conflicts (conflicted copy), version history, durability guarantees.</li>
+    <li><strong>(3 min)</strong> Trade-offs: eventual consistency for sync vs. sacred durability; keep-both vs auto-merge.</li>
+  </ol>
+
+  <details>
+    <summary>New glossary entries (beyond the earlier guides)</summary>
+    <ul style="margin-top:8px">
+      <li><strong>Chunk:</strong> a fixed-size piece of a file (~4 MB); files are stored and synced as lists of chunks.</li>
+      <li><strong>Content hash:</strong> a fingerprint of a chunk's bytes; same bytes &#8594; same hash. Used as the chunk's name.</li>
+      <li><strong>Delta sync:</strong> transfer only the chunks that changed, not the whole file.</li>
+      <li><strong>Deduplication:</strong> store identical chunks once, referenced many times.</li>
+      <li><strong>Block/metadata split:</strong> chunk bytes in block storage; file facts &amp; chunk lists in a metadata DB.</li>
+      <li><strong>Resumable upload:</strong> because a file is chunks, a dropped connection only re-sends the missing chunk.</li>
+      <li><strong>Local index:</strong> the client's little DB of file &#8594; version &#8594; chunk hashes; drives delta &amp; conflict detection.</li>
+      <li><strong>Conflicted copy:</strong> when two edits diverge, keep both files rather than overwrite &#8594; no data loss.</li>
+      <li><strong>Integrity check:</strong> re-hash a downloaded chunk to confirm it isn't corrupted.</li>
+    </ul>
+  </details>
+</section>
+
+</main>
+
+<script>
+  const steps = Array.from(document.querySelectorAll('section.step'));
+  const nav = document.getElementById('nav');
+  const bar = document.getElementById('bar');
+  let current = 0;
+
+  steps.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.textContent = s.dataset.title;
+    b.onclick = () => show(i);
+    nav.appendChild(b);
+
+    const pager = document.createElement('div');
+    pager.className = 'pager';
+    const prev = document.createElement('button');
+    prev.textContent = '← Back';
+    prev.disabled = i === 0;
+    prev.onclick = () => show(i - 1);
+    const next = document.createElement('button');
+    next.className = 'next';
+    next.textContent = i === steps.length - 1 ? 'Start over ↺' : 'Next: ' + steps[Math.min(i + 1, steps.length - 1)].dataset.title + ' →';
+    next.onclick = () => show(i === steps.length - 1 ? 0 : i + 1);
+    pager.append(prev, next);
+    s.appendChild(pager);
+  });
+
+  const buttons = Array.from(nav.children);
+
+  function show(i) {
+    current = i;
+    steps.forEach((s, j) => s.classList.toggle('visible', j === i));
+    buttons.forEach((b, j) => {
+      b.classList.toggle('active', j === i);
+      b.classList.toggle('done', j < i);
+    });
+    bar.style.width = ((i + 1) / steps.length * 100) + '%';
+    window.scrollTo({ top: 0 });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' && current < steps.length - 1) show(current + 1);
+    if (e.key === 'ArrowLeft' && current > 0) show(current - 1);
+  });
+
+  show(0);
+</script>
+</body>
+</html>
