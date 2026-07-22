@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Designing Slack — A Beginner's Step-by-Step Guide</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #181b24;
+    --panel2: #1f2330;
+    --text: #e8eaf0;
+    --muted: #9aa1b2;
+    --accent: #4a154b;
+    --accent-b: #611f69;
+    --blue: #4f8ef7;
+    --green: #2eb67d;
+    --yellow: #ecb22e;
+    --pink: #e01e5a;
+    --cyan: #36c5f0;
+    --border: #2b3040;
+    --code-bg: #12141c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+  header { padding: 28px 24px 20px; background: linear-gradient(135deg, #4a154b 0%, #611f69 55%, #e01e5a 100%); text-align: center; }
+  header h1 { font-size: 1.7rem; color: #fff; }
+  header p { color: rgba(255,255,255,.92); margin-top: 6px; font-size: .95rem; }
+
+  nav { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 14px 16px; background: var(--panel); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+  nav button { background: var(--panel2); color: var(--muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: .8rem; transition: all .15s; }
+  nav button:hover { color: var(--text); border-color: var(--cyan); }
+  nav button.active { background: var(--cyan); color: #08121a; border-color: var(--cyan); font-weight: 700; }
+  nav button.done { color: var(--green); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 30px 20px 80px; }
+  section.step { display: none; animation: fade .3s ease; }
+  section.step.visible { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: none;} }
+
+  .step-label { display: inline-block; background: var(--cyan); color: #08121a; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 12px; border-radius: 14px; margin-bottom: 12px; }
+  h2 { font-size: 1.5rem; margin-bottom: 14px; }
+  h3 { font-size: 1.12rem; margin: 26px 0 10px; color: var(--yellow); }
+  p { margin-bottom: 12px; }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 7px; }
+  strong { color: #fff; }
+  em { color: var(--yellow); font-style: normal; }
+
+  .story { background: var(--panel); border-left: 4px solid var(--blue); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .story .tag { font-size: .72rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .07em; }
+  .concept { background: var(--panel); border-left: 4px solid var(--yellow); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .concept .tag { font-size: .72rem; font-weight: 700; color: var(--yellow); text-transform: uppercase; letter-spacing: .07em; }
+  .problem { background: var(--panel); border-left: 4px solid var(--pink); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .problem .tag { font-size: .72rem; font-weight: 700; color: var(--pink); text-transform: uppercase; letter-spacing: .07em; }
+  .recap { background: var(--panel); border-left: 4px solid var(--green); padding: 14px 16px; border-radius: 8px; margin: 16px 0; }
+  .recap .tag { font-size: .72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .07em; }
+  .takeaway { background: linear-gradient(135deg, rgba(46,182,125,.12), rgba(54,197,240,.08)); border: 1px solid rgba(46,182,125,.4); padding: 14px 16px; border-radius: 8px; margin: 20px 0; }
+  .takeaway .tag { font-size: .72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: .07em; }
+
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 22px 16px; margin: 18px 0; overflow-x: auto; }
+  .diagram .caption { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 12px; }
+  .row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .node { background: var(--panel2); border: 2px solid var(--blue); border-radius: 8px; padding: 10px 14px; text-align: center; font-size: .82rem; min-width: 100px; }
+  .node small { display: block; color: var(--muted); font-size: .7rem; margin-top: 2px; }
+  .node.user { border-color: #f77737; }
+  .node.db { border-color: var(--green); border-radius: 18px 18px 8px 8px; }
+  .node.store { border-color: var(--yellow); }
+  .node.cache { border-color: var(--pink); }
+  .node.ws { border-color: var(--cyan); }
+  .node.ps { border-color: #a970ff; }
+  .arrow { color: var(--muted); font-size: 1.2rem; padding: 0 2px; }
+  .arrow.v { transform: rotate(90deg); }
+  .lbl { font-size: .68rem; color: var(--muted); text-align: center; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .87rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  th { background: var(--panel2); color: var(--yellow); }
+  td { background: var(--panel); }
+
+  code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: .85em; color: var(--yellow); font-family: "SF Mono", Menlo, Consolas, monospace; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; margin: 14px 0; font-size: .82rem; line-height: 1.5; font-family: "SF Mono", Menlo, Consolas, monospace; color: var(--text); }
+
+  .pager { display: flex; justify-content: space-between; margin-top: 36px; gap: 12px; }
+  .pager button { background: var(--panel2); color: var(--text); border: 1px solid var(--border); padding: 12px 22px; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+  .pager button.next { background: var(--cyan); border-color: var(--cyan); color: #08121a; font-weight: 700; }
+  .pager button:hover { filter: brightness(1.15); }
+  .pager button:disabled { opacity: .3; cursor: default; }
+
+  .progress { height: 4px; background: var(--panel2); }
+  .progress .bar { height: 100%; background: linear-gradient(90deg, #4a154b, #e01e5a, #36c5f0); width: 0; transition: width .3s; }
+
+  details { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+  summary { cursor: pointer; color: var(--blue); font-weight: 600; font-size: .9rem; }
+  details[open] summary { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#128172; Designing Slack</h1>
+  <p>A step-by-step system design walkthrough — focus on real-time messaging, the new muscle Instagram &amp; Twitter didn't exercise</p>
+</header>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<nav id="nav"></nav>
+
+<main id="main">
+
+<!-- ============ STEP 0 ============ -->
+<section class="step" data-title="Start Here">
+  <span class="step-label">Start Here</span>
+  <h2>What's fundamentally different about Slack</h2>
+  <p>Instagram and Twitter are <strong>pull</strong> products: you open the app and <em>ask</em> for content. Slack is a <strong>push</strong> product: a message must appear on your screen <em>the instant</em> a coworker sends it, without you asking. That single difference — the server needs to talk to the client whenever it wants — reshapes the whole design. This guide's deep dive is exactly that: <strong>how does a server push data to millions of connected clients in real time?</strong></p>
+
+  <h3>Meet our cast (a workspace called "Acme Corp")</h3>
+  <ul>
+    <li><strong>Maya</strong> — engineer, sends a message in the <code>#engineering</code> channel.</li>
+    <li><strong>Rohan &amp; Dev</strong> — her teammates, online, both looking at <code>#engineering</code> right now.</li>
+    <li><strong>Priya</strong> — a teammate whose laptop is closed; she's offline and should get a notification + see the message when she returns.</li>
+    <li><strong>#general</strong> — a channel with 8,000 members (the "big channel" problem).</li>
+  </ul>
+
+  <h3>Requirements</h3>
+  <table>
+    <tr><th>Functional</th><th>Non-functional</th></tr>
+    <tr><td>Send/receive messages in channels &amp; DMs, in real time</td><td>Low latency — a message should feel <em>instant</em> (&lt;100–200ms to online members)</td></tr>
+    <tr><td>Channels &amp; workspaces; join/leave</td><td>Highly available</td></tr>
+    <tr><td>Full message history + search</td><td><strong>Ordering &amp; no-loss:</strong> messages appear in the same order for everyone; a sent message is never lost</td></tr>
+    <tr><td>Presence (who's online) &amp; unread counts</td><td>Scale to millions of simultaneously-connected clients</td></tr>
+    <tr><td>Notifications when you're offline</td><td>Eventual consistency OK for things like presence/read-state</td></tr>
+  </table>
+
+  <div class="concept">
+    <span class="tag">&#128161; Key insights to state early</span>
+    <ul style="margin-top:8px">
+      <li><strong>The hard part isn't storing messages — it's <em>delivering</em> them.</strong> Saving a message to a database is easy (we've done it twice). Pushing it to everyone watching that channel, right now, is the challenge.</li>
+      <li><strong>Ordering matters more than in social apps.</strong> A conversation reads wrong if messages arrive out of order. We need a consistent per-channel ordering.</li>
+      <li><strong>Connections are the scarce resource.</strong> With social apps we counted requests/sec; here we count <em>how many clients are holding an open connection at once</em> — potentially tens of millions.</li>
+    </ul>
+  </div>
+
+  <h3>Back-of-the-envelope</h3>
+  <ul>
+    <li>Say 10M simultaneously-connected users. Each holds one persistent connection → <em>10M open connections</em> to keep alive.</li>
+    <li>Messages are tiny (~a few hundred bytes). Storage is cheap, like Twitter. The cost is the <em>delivery fan-out</em>, not bytes.</li>
+    <li>A message in a 5-person channel = 4 deliveries. A message in <code>#general</code> (8,000 members) = up to 8,000 deliveries. Big channels are our celebrity problem.</li>
+  </ul>
+</section>
+
+<!-- ============ STEP 1 ============ -->
+<section class="step" data-title="1. The Naive Way">
+  <span class="step-label">Step 1</span>
+  <h2>First attempt: why "just refresh" (polling) fails</h2>
+  <p>The skeleton (load balancer → stateless app servers → sharded/replicated DB → object storage/CDN for file uploads) carries over from the earlier guides — we'll take it as given. The interesting question is delivery. Naive idea: the client asks "any new messages?" over and over.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Polling</span>
+    <p style="margin-top:6px"><strong>Polling</strong> = the client repeatedly sends a normal request ("anything new since message #500?") every, say, 3 seconds. It's simple and it's how you'd first try. Analogy: a kid in the back seat asking "are we there yet?" every few seconds the whole trip.</p>
+  </div>
+
+  <div class="problem">
+    <span class="tag">&#9888; Why polling breaks for chat</span>
+    <ul style="margin-top:8px">
+      <li><strong>Laggy:</strong> if Maya sends a message right after Rohan's poll, he waits up to 3 seconds to see it. Chat needs to feel instant.</li>
+      <li><strong>Wasteful:</strong> 10M clients each polling every 3s = ~3.3M requests/sec, and the vast majority return "nothing new." You're paying enormous cost to mostly say "no."</li>
+      <li><strong>Poll faster to reduce lag → cost explodes; poll slower to save cost → more lag.</strong> There's no good setting. The model is wrong for real-time.</li>
+    </ul>
+  </div>
+
+  <p>The root problem: in a normal request the <em>client</em> must initiate, but with chat it's the <em>server</em> that knows when there's news. We need to invert who starts the conversation.</p>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Request/response (the model behind Instagram &amp; Twitter) can't push. We need a connection the server can send down at any moment. Enter WebSockets.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 2 ============ -->
+<section class="step" data-title="2. WebSockets">
+  <span class="step-label">Step 2 — the core idea</span>
+  <h2>Persistent connections: WebSockets</h2>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: WebSocket (a persistent, two-way pipe)</span>
+    <p style="margin-top:6px">A normal web request is like <strong>sending a letter</strong>: you write, you send, you get one reply, the exchange is over. A <strong>WebSocket</strong> is like <strong>keeping a phone line open</strong>: the client dials in once, and the line <em>stays connected</em>. Now <em>either side</em> can speak whenever they want — no need to re-dial. The server can push "new message!" down the line the instant it happens.</p>
+    <p>When Rohan opens Slack, his app makes one WebSocket connection to a server and just <em>holds it open</em> for hours. Maya's message travels: Maya → server → straight down Rohan's already-open pipe → on his screen in ~50ms. No polling, no waiting.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Gateway / connection servers</span>
+    <p style="margin-top:6px">We dedicate a fleet of servers whose <em>only</em> job is to hold these open connections — call them <strong>gateway servers</strong> (or "WebSocket servers"). Each can hold maybe ~500k–1M open connections. With 10M users online, that's ~10–20 gateway machines' worth of connections. They're specialized: they don't run business logic, they just keep pipes alive and shuttle messages in and out. (Same instinct as separating photos from metadata — give each job its own optimized box.)</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="col" style="gap:10px">
+        <div class="node user">&#128241; Rohan</div>
+        <div class="node user">&#128241; Dev</div>
+        <div class="node user">&#128241; Maya</div>
+      </div>
+      <div class="col"><span class="lbl">persistent<br>WebSocket</span><span class="arrow">&#8660;</span></div>
+      <div class="col" style="gap:10px">
+        <div class="node ws">&#128268; Gateway 1<small>holds ~800k<br>open connections</small></div>
+        <div class="node ws">&#128268; Gateway 2</div>
+      </div>
+      <div class="col"><span class="arrow">&#8660;</span></div>
+      <div class="node">&#128421; App / Message Service<small>business logic</small></div>
+    </div>
+    <div class="caption">Gateways keep the pipes open; app servers do the thinking. A load balancer sits in front (supporting long-lived connections).</div>
+  </div>
+
+  <div class="problem">
+    <span class="tag">&#9888; The problem this creates — and it's the crux</span>
+    <p style="margin-top:6px">Rohan is connected to <strong>Gateway 1</strong>. Dev is connected to <strong>Gateway 2</strong>. Maya sends to <code>#engineering</code>. The server now must figure out: <em>which gateways hold connections for members of this channel, so I can push the message to exactly them?</em> Rohan's message must reach Gateway 1, Dev's must reach Gateway 2 — but the message might first arrive at some third server. How do the servers coordinate? That's Step 3.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 3 ============ -->
+<section class="step" data-title="3. Pub/Sub Routing ★">
+  <span class="step-label">Step 3 — the heart of the design</span>
+  <h2>Routing a message to the right connections: Pub/Sub</h2>
+  <p>Maya sends a message. Members of <code>#engineering</code> are scattered across many gateway servers. We need a way to deliver to "everyone subscribed to this channel" without every server knowing about every other server. The tool is <strong>Publish/Subscribe</strong>.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Pub/Sub (publish–subscribe)</span>
+    <p style="margin-top:6px">Think of a <strong>radio station</strong>. The DJ (publisher) broadcasts on 98.5 FM. Anyone tuned to 98.5 (subscribers) hears it. The DJ doesn't know or care who's listening — it just broadcasts to the <em>channel</em>. Pub/Sub systems (Redis Pub/Sub, Kafka) work the same way: publishers send messages to a named <strong>topic</strong>, and every server subscribed to that topic receives them.</p>
+    <p>We make each Slack channel a Pub/Sub topic. A gateway <strong>subscribes</strong> to a channel's topic when it's holding a connection for someone viewing that channel. To deliver a message, we just <strong>publish</strong> it to the channel's topic — and every gateway with relevant users automatically gets it and pushes it down the right pipes.</p>
+  </div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Maya sends<small>to #engineering</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node">&#128421; Message Service<small>1. save to DB<br>2. publish to topic<br>"chan:engineering"</small></div>
+      <div class="col"><span class="arrow">&#10230;</span></div>
+      <div class="node ps">&#128225; Pub/Sub<small>topic: chan:engineering</small></div>
+    </div>
+    <div class="row"><span class="arrow v">&#10230;</span><span class="lbl">fans out to subscribed gateways</span></div>
+    <div class="row">
+      <div class="node ws">&#128268; Gateway 1<small>&#10230; pushes to Rohan</small></div>
+      <div class="node ws">&#128268; Gateway 2<small>&#10230; pushes to Dev</small></div>
+    </div>
+    <div class="caption">Publish once to the channel topic → every gateway holding a member's connection delivers it</div>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough — one message's journey</span>
+    <p style="margin-top:6px">Maya types "deploy is green &#9989;" in <code>#engineering</code> and hits enter.</p>
+    <ol style="margin-top:8px">
+      <li>Her message travels up her open WebSocket to the gateway she's on, then to the <strong>Message Service</strong>.</li>
+      <li>The service <strong>saves it to the database first</strong> (durability — see Step 4), assigns it an ID/sequence number, and acknowledges Maya (her client shows the "sent" checkmark).</li>
+      <li>It <strong>publishes</strong> the message to topic <code>chan:engineering</code>.</li>
+      <li>Gateway 1 (subscribed, because Rohan is viewing the channel) receives it and pushes it down Rohan's pipe. Gateway 2 does the same for Dev. Both see it within ~50ms.</li>
+      <li>Priya is offline — no open connection — so nothing is pushed to her now. Instead a <strong>notification service</strong> (also subscribed) sends her a mobile push, and her unread count for <code>#engineering</code> is bumped. When she reopens Slack, her client fetches messages it missed from the database (Step 4).</li>
+    </ol>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Pub/Sub decouples senders from receivers: publish to a channel topic, and gateways fan the message out to exactly the right open connections. Online users get a real-time push; offline users get a notification + catch up later. Now let's make sure messages are never lost and always in order.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 4 ============ -->
+<section class="step" data-title="4. Storage, Order & No-Loss">
+  <span class="step-label">Step 4</span>
+  <h2>Never lose a message; keep everyone's view in order</h2>
+
+  <h3>Store first, then deliver</h3>
+  <p>Notice the ordering in the walkthrough: we <strong>save to the database before publishing</strong>. This is deliberate. If we pushed to everyone first and the save failed, online users would see a message that vanishes on refresh, and offline users would never get it. Saving first means the database is the single source of truth; real-time delivery is a fast <em>bonus</em> layer on top.</p>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Data model &amp; sharding by channel</span>
+    <pre>
+<span style="color:var(--green)">Message</span>                     <span style="color:var(--green)">Channel</span>              <span style="color:var(--green)">Membership</span>
+──────────────────         ──────────────       ─────────────────
+message_id (Snowflake)     channel_id           channel_id + user_id
+channel_id  &#8592; shard key   workspace_id         last_read_message_id
+sender_id                  name, is_private     (&#8594; unread counts!)
+text / file_url
+seq   &#8592; per-channel order
+created_at</pre>
+    <p style="margin-top:8px">We <strong>shard messages by <code>channel_id</code></strong>, so all of a channel's messages live together on one shard — fast to load history, and a natural place to assign a strict per-channel <strong>sequence number</strong>. Loading a channel = "give me messages for channel X with seq &gt; my last_read," a clean indexed query.</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Message ordering</span>
+    <p style="margin-top:6px">If Maya and Dev send at nearly the same instant, everyone must see them in the <em>same</em> order, or the conversation reads differently for different people. Solution: the shard that owns a channel assigns each message a monotonically increasing <strong>sequence number</strong> as it's saved. Clients render strictly by sequence. Because one shard owns the channel, there's a single authority deciding "this was message #841, that was #842" — no ambiguity. (This is why sharding <em>by channel</em>, not by message, matters here.)</p>
+  </div>
+
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Client catch-up &amp; delivery guarantees</span>
+    <p style="margin-top:6px">Networks drop. A pushed message can be missed if a connection blips at the wrong moment. So the client never fully trusts the live stream: it tracks the <strong>last sequence number it has</strong>, and on (re)connect it asks "give me everything in this channel after seq 840." Missed messages are backfilled from the database. This gives <strong>at-least-once</strong> delivery; the sequence number lets the client discard duplicates → effectively <strong>exactly-once</strong> as the user sees it. Real-time push is the fast path; the database + sequence number is the safety net that guarantees no loss.</p>
+  </div>
+
+  <div class="story">
+    <span class="tag">&#127916; Real-world walkthrough</span>
+    <p style="margin-top:6px">Rohan's train enters a tunnel; his WebSocket drops for 90 seconds. Maya posts 3 messages meanwhile. When Rohan reconnects, his client reopens a WebSocket, tells the server "my last <code>#engineering</code> seq is 840," and the server returns messages 841–843 from the database. Rohan never notices a gap — the live pipe and the durable store together cover for each other.</p>
+  </div>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Persist before you push. Shard by channel so one authority assigns sequence numbers → consistent ordering. Clients catch up by sequence on reconnect → no message ever lost, even across flaky networks.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 5 ============ -->
+<section class="step" data-title="5. Presence & Big Channels">
+  <span class="step-label">Step 5</span>
+  <h2>Presence (who's online) &amp; the big-channel problem</h2>
+
+  <h3>Presence: the green dot</h3>
+  <div class="concept">
+    <span class="tag">&#128218; Concept: Presence via connection state + heartbeats</span>
+    <p style="margin-top:6px">Who's online? Naturally, whoever currently holds an open WebSocket. Gateways know this, so they write "user X is online" into a fast in-memory store (<strong>Redis</strong>). Clients send a periodic <strong>heartbeat</strong> ("still here") every ~30s; if the gateway stops hearing it, it marks the user offline. Presence is intentionally <strong>eventually consistent</strong> — if Dev's green dot lingers a few seconds after he closes his laptop, nobody's harmed. We deliberately spend less rigor here than on messages.</p>
+  </div>
+  <div class="problem">
+    <span class="tag">&#9888; Presence can be a hidden scale trap</span>
+    <p style="margin-top:6px">Broadcasting "Dev is online!" to everyone who could see Dev can be more traffic than actual messages. Fix: only compute/emit presence for people <em>currently looking at</em> a relevant channel or DM, and batch updates. Interviewers like to poke at this — presence looks trivial but fans out badly.</p>
+  </div>
+
+  <h3>The big-channel problem (our "celebrity" of Slack)</h3>
+  <div class="story">
+    <span class="tag">&#127916; The #general problem</span>
+    <p style="margin-top:6px">A message in a 5-person channel is 4 deliveries — trivial. A message in <code>#general</code> with <strong>8,000 members</strong>, during an all-hands, is up to 8,000 near-simultaneous pushes. If a CEO posts and everyone reacts, you get thundering fan-out. This is the same shape as Twitter's celebrity problem, now in delivery form.</p>
+  </div>
+  <ul>
+    <li><strong>Pub/Sub already helps:</strong> we publish <em>once</em> to the channel topic; only gateways holding a member's connection do work, and each pushes only to its own local connections. No server fans out to all 8,000 alone.</li>
+    <li><strong>Only deliver to who's watching:</strong> most of the 8,000 aren't looking at <code>#general</code> right now. We push in real time to active viewers; everyone else just gets an unread-count bump and reads it later from the DB. Delivery scales with <em>active</em> viewers, not total members.</li>
+    <li><strong>Rate-limit & coalesce:</strong> for reactions/typing indicators in huge channels, batch updates ("+142 &#128077;") rather than 142 individual events.</li>
+  </ul>
+
+  <div class="takeaway">
+    <span class="tag">&#10003; Takeaway</span>
+    <p style="margin-top:6px">Presence = connection state + heartbeats, kept cheap and eventually consistent. Big channels are tamed by publishing once (Pub/Sub), delivering live only to active viewers, and batching noisy events.</p>
+  </div>
+</section>
+
+<!-- ============ STEP 6 ============ -->
+<section class="step" data-title="6. Full Design">
+  <span class="step-label">Step 6 — putting it all together</span>
+  <h2>The complete architecture</h2>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="node user">&#128241; Clients<small>persistent WebSockets</small></div>
+      <div class="col"><span class="arrow">&#8660;</span></div>
+      <div class="node" style="border-color:#f77737">&#9878; Load Balancer<small>supports long-lived conns</small></div>
+      <div class="col"><span class="arrow">&#8660;</span></div>
+      <div class="node ws">&#128268; Gateway Fleet<small>holds millions of<br>open connections</small></div>
+    </div>
+    <div class="row"><span class="arrow v">&#10230;</span></div>
+    <div class="row">
+      <div class="node">&#128421; Message Service<small>save → seq# → publish</small></div>
+      <div class="node ps">&#128225; Pub/Sub<small>one topic per channel</small></div>
+      <div class="node">&#128276; Notification Service<small>push to offline users</small></div>
+      <div class="node">&#128269; Search Indexer<small>inverted index</small></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <div class="node cache">&#9889; Redis<small>presence + hot channels</small></div>
+      <div class="node db">&#128451; Message DB<small>sharded by channel,<br>replicated, seq-ordered</small></div>
+      <div class="node db">&#128451; Channel/User/Membership DB</div>
+      <div class="node store">&#128452; Object Storage + CDN<small>file uploads</small></div>
+    </div>
+    <div class="caption">Gateways = connections; Pub/Sub = routing; DB = durable, ordered source of truth</div>
+  </div>
+
+  <h3>Flow — Maya posts to #engineering (Rohan online, Priya offline)</h3>
+  <ol>
+    <li>Message goes up Maya's WebSocket → gateway → <strong>Message Service</strong>.</li>
+    <li>Service <strong>saves to the channel's DB shard</strong>, gets a sequence number, <strong>acks Maya</strong> (durable = "sent").</li>
+    <li>Service <strong>publishes</strong> to <code>chan:engineering</code>.</li>
+    <li>Subscribed gateways push to online members (Rohan, Dev) in ~50ms; the <strong>notification service</strong> (also subscribed) sends Priya a mobile push and bumps her unread count.</li>
+    <li>Priya reopens Slack later → her client asks for messages after her last seq → DB backfills them. Search indexer (another subscriber) adds the message to the inverted index.</li>
+  </ol>
+
+  <h3>Requirements check &#9989;</h3>
+  <table>
+    <tr><th>Requirement</th><th>How we met it</th></tr>
+    <tr><td>Real-time messaging</td><td>Persistent WebSockets + Pub/Sub routing (push, not poll)</td></tr>
+    <tr><td>Channels/workspaces</td><td>Channel & Membership tables; each channel a Pub/Sub topic</td></tr>
+    <tr><td>Low latency (&lt;100–200ms)</td><td>Already-open pipes + publish-once fan-out</td></tr>
+    <tr><td>Ordering</td><td>Per-channel sequence numbers from the owning shard</td></tr>
+    <tr><td>Never lose a message</td><td>Persist-before-publish; replicated DB; client catch-up by sequence</td></tr>
+    <tr><td>History + search</td><td>Sharded message store + inverted index</td></tr>
+    <tr><td>Presence & unread</td><td>Connection state + heartbeats in Redis; last_read per membership</td></tr>
+    <tr><td>Offline notifications</td><td>Notification service subscribes to topics, sends mobile push</td></tr>
+    <tr><td>Millions of connections</td><td>Dedicated gateway fleet, ~1M connections each, scaled horizontally</td></tr>
+    <tr><td>High availability</td><td>Redundant gateways/services; on gateway death, clients auto-reconnect & catch up</td></tr>
+  </table>
+
+  <h3>Narrating this in a 45-minute interview</h3>
+  <ol>
+    <li><strong>(5 min)</strong> Requirements + "the hard part is delivery, not storage"; count connections, not just QPS.</li>
+    <li><strong>(5 min)</strong> Kill polling; motivate persistent connections.</li>
+    <li><strong>(8 min)</strong> WebSockets + dedicated gateway fleet; surface the cross-gateway routing problem.</li>
+    <li><strong>(12 min)</strong> Pub/Sub deep dive: channel topics, publish-once fan-out, online vs offline paths.</li>
+    <li><strong>(8 min)</strong> Durability & ordering: persist-before-publish, per-channel sequence numbers, client catch-up, at-least-once → exactly-once.</li>
+    <li><strong>(4 min)</strong> Presence + big-channel fan-out.</li>
+    <li><strong>(3 min)</strong> Trade-offs: strict ordering/no-loss for messages vs eventual consistency for presence; gateway failure handling.</li>
+  </ol>
+
+  <details>
+    <summary>New glossary entries (beyond the earlier guides)</summary>
+    <ul style="margin-top:8px">
+      <li><strong>Polling:</strong> client repeatedly asks "anything new?" — simple but laggy and wasteful for chat.</li>
+      <li><strong>WebSocket:</strong> a persistent, two-way connection; either side can send anytime (the open phone line).</li>
+      <li><strong>Gateway / connection server:</strong> specialized server that just holds millions of open connections.</li>
+      <li><strong>Pub/Sub:</strong> publish to a named topic; all subscribers receive it (the radio station).</li>
+      <li><strong>Topic:</strong> a named channel in Pub/Sub — here, one per Slack channel.</li>
+      <li><strong>Sequence number:</strong> per-channel counter giving every member the same message order.</li>
+      <li><strong>Heartbeat:</strong> periodic "still here" ping used for presence and detecting dead connections.</li>
+      <li><strong>At-least-once / exactly-once:</strong> delivery guarantees; sequence numbers let clients dedupe to exactly-once as seen.</li>
+      <li><strong>Persist-before-publish:</strong> save to the durable store before doing real-time delivery, so nothing is lost.</li>
+    </ul>
+  </details>
+</section>
+
+</main>
+
+<script>
+  const steps = Array.from(document.querySelectorAll('section.step'));
+  const nav = document.getElementById('nav');
+  const bar = document.getElementById('bar');
+  let current = 0;
+
+  steps.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.textContent = s.dataset.title;
+    b.onclick = () => show(i);
+    nav.appendChild(b);
+
+    const pager = document.createElement('div');
+    pager.className = 'pager';
+    const prev = document.createElement('button');
+    prev.textContent = '← Back';
+    prev.disabled = i === 0;
+    prev.onclick = () => show(i - 1);
+    const next = document.createElement('button');
+    next.className = 'next';
+    next.textContent = i === steps.length - 1 ? 'Start over ↺' : 'Next: ' + steps[Math.min(i + 1, steps.length - 1)].dataset.title + ' →';
+    next.onclick = () => show(i === steps.length - 1 ? 0 : i + 1);
+    pager.append(prev, next);
+    s.appendChild(pager);
+  });
+
+  const buttons = Array.from(nav.children);
+
+  function show(i) {
+    current = i;
+    steps.forEach((s, j) => s.classList.toggle('visible', j === i));
+    buttons.forEach((b, j) => {
+      b.classList.toggle('active', j === i);
+      b.classList.toggle('done', j < i);
+    });
+    bar.style.width = ((i + 1) / steps.length * 100) + '%';
+    window.scrollTo({ top: 0 });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' && current < steps.length - 1) show(current + 1);
+    if (e.key === 'ArrowLeft' && current > 0) show(current - 1);
+  });
+
+  show(0);
+</script>
+</body>
+</html>
